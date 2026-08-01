@@ -23,37 +23,21 @@ export function MotionBlock({ children, className }: MotionProps) {
   );
 }
 
-export function MotionList({ children, className }: MotionProps) {
-  return (
-    <motion.section
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.18 }}
-      variants={{
-        hidden: {},
-        show: {
-          transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.06,
-          },
-        },
-      }}
-      className={className}
-    >
-      {children}
-    </motion.section>
-  );
-}
-
-export function MotionItem({ children, className }: MotionProps) {
+export function MotionList({
+  children,
+  className,
+  stagger = 0.05,
+}: MotionProps & { stagger?: number }) {
   return (
     <motion.div
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
       variants={{
-        hidden: { opacity: 0, y: 26, rotateX: -10, rotate: -0.4 },
-        show: { opacity: 1, y: 0, rotateX: 0, rotate: 0 },
+        hidden: {},
+        show: { transition: { staggerChildren: stagger } },
       }}
-      transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
-      className={cn("origin-top will-change-transform", className)}
+      className={className}
     >
       {children}
     </motion.div>

@@ -9,141 +9,105 @@ interface PaginationProps {
   totalPages: number;
   showingStart: number;
   showingEnd: number;
-  totalItems: number;
-  itemName?: string;
-  limit?: number;
+  totalResults: number;
+  itemLabel?: string;
+}
+
+function buildHref(
+  pathname: string,
+  searchParams: Record<string, string> | undefined,
+  page: number
+) {
+  const params = new URLSearchParams(searchParams ?? {});
+  params.set("page", String(page));
+  const qs = params.toString();
+  return qs ? `${pathname}?${qs}` : pathname;
+}
+
+function getVisiblePages(currentPage: number, totalPages: number) {
+  const pages: (number | "...")[] = [];
+  const start = Math.max(1, currentPage - 1);
+  const end = Math.min(totalPages, currentPage + 1);
+  if (start > 1) {
+    pages.push(1);
+    if (start > 2) pages.push("...");
+  }
+  for (let p = start; p <= end; p++) pages.push(p);
+  if (end < totalPages) {
+    if (end < totalPages - 1) pages.push("...");
+    pages.push(totalPages);
+  }
+  return pages;
 }
 
 export function Pagination({
+  pathname,
+  searchParams,
   currentPage,
   totalPages,
   showingStart,
   showingEnd,
-  totalItems,
-  itemName = "items",
-  limit = 5,
-  pathname,
-  searchParams,
+  totalResults,
+  itemLabel = "results",
 }: PaginationProps) {
-  // hide everything if no items
-  if (!totalItems || totalPages <= 0 || totalItems <= limit) return null;
-
-  const setPageHref = (page: number) => {
-    const params = new URLSearchParams(searchParams);
-    // keep other query params intact
-    if (page <= 1) {
-      params.delete("page");
-    } else {
-      params.set("page", String(page));
-    }
-    const qs = params.toString();
-    return qs ? `${pathname}?${qs}` : pathname;
-  };
-
-  const getPageNumbers = () => {
-    const pages: (number | "ellipsis")[] = [];
-
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-
-      if (currentPage <= 4) {
-        for (let i = 2; i <= 4; i++) pages.push(i);
-        pages.push("ellipsis");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 3) {
-        pages.push("ellipsis");
-        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push("ellipsis");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-        pages.push("ellipsis");
-        pages.push(totalPages);
-      }
-    }
-
-    return pages;
-  };
-
-  const pageNumbers = getPageNumbers();
-  const hasPrev = currentPage > 1;
-  const hasNext = currentPage < totalPages;
+  if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between mt-6 pt-4 border-t gap-4">
-      <div className="hidden sm:block text-sm text-muted-foreground">
-        Showing {showingStart} to {showingEnd} of {totalItems} {itemName}
-      </div>
+    <div className="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
+      <p className="text-sm text-muted-foreground">
+        Showing {showingStart}–{showingEnd} of {totalResults} {itemLabel}
+      </p>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Previous */}
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className={!hasPrev ? "pointer-events-none opacity-50" : ""}
-        >
-          <Link
-            href={hasPrev ? setPageHref(currentPage - 1) : "#"}
-            aria-disabled={!hasPrev}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Previous
-          </Link>
-        </Button>
+      <nav className="flex items-center gap-1" aria-label="Pagination">
+        {currentPage > 1 ? (
+          <Button asChild variant="outline" size="sm">
+            <Link href={buildHref(pathname, searchParams, currentPage - 1)} aria-label="Previous page">
+              <ChevronLeft /> Prev
+            </Link>
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm" disabled>
+            <ChevronLeft /> Prev
+          </Button>
+        )}
 
-        {/* Page numbers */}
-        <div className="flex items-center space-x-1">
-          {pageNumbers.map((page, index) => {
-            if (page === "ellipsis") {
-              return (
-                <div
-                  key={`ellipsis-${index}`}
-                  className="flex items-center justify-center w-8 h-8"
-                >
-                  <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                </div>
-              );
-            }
-
-            const isActive = currentPage === page;
-
-            return (
-              <Button
-                key={page}
-                variant={isActive ? "default" : "outline"}
-                size="sm"
-                asChild
-                className="w-8 h-8 p-0"
+        {getVisiblePages(currentPage, totalPages).map((p, i) =>
+          p === "..." ? (
+            <span
+              key={`ellipsis-${i}`}
+              className="flex h-8 w-8 items-center justify-center text-muted-foreground"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </span>
+          ) : (
+            <Button
+              key={p}
+              asChild
+              variant={p === currentPage ? "default" : "ghost"}
+              size="sm"
+            >
+              <Link
+                href={buildHref(pathname, searchParams, p)}
+                aria-current={p === currentPage ? "page" : undefined}
               >
-                <Link
-                  href={setPageHref(page as number)}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  {page}
-                </Link>
-              </Button>
-            );
-          })}
-        </div>
+                {p}
+              </Link>
+            </Button>
+          )
+        )}
 
-        {/* Next */}
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className={!hasNext ? "pointer-events-none opacity-50" : ""}
-        >
-          <Link
-            href={hasNext ? setPageHref(currentPage + 1) : "#"}
-            aria-disabled={!hasNext}
-          >
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        </Button>
-      </div>
+        {currentPage < totalPages ? (
+          <Button asChild variant="outline" size="sm">
+            <Link href={buildHref(pathname, searchParams, currentPage + 1)} aria-label="Next page">
+              Next <ChevronRight />
+            </Link>
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm" disabled>
+            Next <ChevronRight />
+          </Button>
+        )}
+      </nav>
     </div>
   );
 }

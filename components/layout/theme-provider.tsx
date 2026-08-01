@@ -14,8 +14,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       defaultTheme="dark"
       enableSystem
       disableTransitionOnChange
+      themes={["light", "dark"]}
     >
       {children}
     </NextThemesProvider>
   );
 }
+

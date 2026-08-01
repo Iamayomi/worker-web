@@ -1,4 +1,6 @@
 type ILandingContent = {
+  headerAvatarUrl: string;
+  faviconUrl: string;
   hero: {
     pageLabel: string;
     greeting: string;
@@ -76,3 +78,4 @@ type ILandingContent = {
     }[];
   };
 };
+

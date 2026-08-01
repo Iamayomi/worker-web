@@ -38,6 +38,9 @@ export type PublicNoteDetail = PublicNoteListItem & {
     name: string;
     image?: string | null;
   };
+  series?: string;
+  seriesOrder?: number;
+  seriesEntries?: { slug: string; title: string; order: number }[];
   comments: PublicNoteComment[];
   relatedPosts: PublicNoteListItem[];
 };
@@ -54,3 +57,4 @@ export type NoteCommentPayload = {
   website?: string;
   content: string;
 };
+

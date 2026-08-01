@@ -38,3 +38,4 @@ export type ContactMessagePayload = {
   budget?: string;
   details: string;
 };
+

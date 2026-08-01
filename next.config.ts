@@ -5,11 +5,23 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "s3.eu-west-2.amazonaws.com",
+        hostname: "img.youtube.com",
       },
       {
         protocol: "https",
-        hostname: "img.youtube.com",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "plus.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.simpleicons.org",
       },
     ],
   },
@@ -21,10 +33,10 @@ const nextConfig: NextConfig = {
         has: [
           {
             type: "host",
-            value: "talktosomto.xyz",
+            value: "talktoayo.xyz",
           },
         ],
-        destination: "https://www.talktosomto.xyz/:path*",
+        destination: "https://www.talktoayo.xyz/:path*",
         permanent: true,
       },
     ];
@@ -32,3 +44,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
