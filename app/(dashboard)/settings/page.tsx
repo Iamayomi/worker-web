@@ -1,14 +1,58 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { worker } from "@/lib/api/worker";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useUploadAvatar } from "@/lib/hooks/use-users";
+import {
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+} from "@/lib/hooks/use-notifications";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Camera, ChevronRight, Shield, Key } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Camera, ChevronRight, Shield, Key, Bell } from "lucide-react";
 import { AnimatedContent } from "@/components/shared/animated-content";
+import type {
+  ChannelPreferences,
+  NotificationPreferenceCategory,
+  NotificationPreferences,
+} from "@/lib/types/api";
+
+const CHANNELS: { key: keyof ChannelPreferences; label: string }[] = [
+  { key: "inApp", label: "In-app" },
+  { key: "email", label: "Email" },
+  { key: "push", label: "Push" },
+];
+
+const CATEGORY_LABELS: Record<
+  NotificationPreferenceCategory,
+  { label: string; desc: string }
+> = {
+  applications: {
+    label: "Applications",
+    desc: "Application status updates and recruiter responses",
+  },
+  offers: {
+    label: "Offers",
+    desc: "Job offers and interview requests",
+  },
+  jobs: {
+    label: "Jobs",
+    desc: "New jobs matching your profile",
+  },
+  system: {
+    label: "System",
+    desc: "Account and service notices",
+  },
+  auth: {
+    label: "Security",
+    desc: "Sign-ins, password changes, and verification emails",
+  },
+};
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -24,6 +68,56 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const [prefsEdits, setPrefsEdits] = useState<Partial<NotificationPreferences> | null>(null);
+  const [prefsError, setPrefsError] = useState("");
+  const [prefsSaved, setPrefsSaved] = useState("");
+  const prefsQuery = useNotificationPreferences();
+  const updatePrefs = useUpdateNotificationPreferences();
+
+  const prefs: NotificationPreferences | null = useMemo(() => {
+    const base = prefsQuery.data;
+    if (!base) return null;
+    return (Object.keys(CATEGORY_LABELS) as NotificationPreferenceCategory[]).reduce(
+      (acc, category) => {
+        acc[category] = {
+          ...base[category],
+          ...(prefsEdits?.[category] ?? {}),
+        };
+        return acc;
+      },
+      {} as NotificationPreferences
+    );
+  }, [prefsQuery.data, prefsEdits]);
+
+  function handleToggle(
+    category: NotificationPreferenceCategory,
+    channel: keyof ChannelPreferences
+  ) {
+    if (!prefs) return;
+    setPrefsSaved("");
+    setPrefsEdits((prev) => ({
+      ...(prev ?? {}),
+      [category]: { ...prefs[category], [channel]: !prefs[category][channel] },
+    }));
+  }
+
+  async function handleSavePreferences() {
+    if (!prefs) return;
+    setPrefsError("");
+    setPrefsSaved("");
+    try {
+      await updatePrefs.mutateAsync(prefs);
+      setPrefsEdits(null);
+      setPrefsSaved("Notification preferences saved");
+    } catch (e) {
+      setPrefsError(
+        e instanceof Error ? e.message : "Failed to save notification preferences"
+      );
+    }
+  }
+
+  const hasPassword = user?.hasPassword ?? false;
 
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? "";
 
@@ -66,8 +160,12 @@ export default function SettingsPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!currentPassword || !newPassword) {
-      setError("Fill in both fields");
+    if (!hasPassword && !newPassword) {
+      setError("Fill in a new password");
+      return;
+    }
+    if (hasPassword && !currentPassword) {
+      setError("Enter your current password");
       return;
     }
     if (newPassword.length < 8) {
@@ -75,12 +173,12 @@ export default function SettingsPage() {
       return;
     }
     setLoading(true);
-    const res = await worker.auth.post("/auth/reset-password", {
-      current_password: currentPassword,
+    const res = await worker.auth.post("/auth/change-password", {
+      ...(hasPassword ? { current_password: currentPassword } : {}),
       new_password: newPassword,
     });
     if (res.success) {
-      setSuccess("Password updated successfully");
+      setSuccess(res.message || "Password updated successfully");
       setCurrentPassword("");
       setNewPassword("");
     } else {
@@ -187,6 +285,12 @@ export default function SettingsPage() {
       <div>
         <h2 className="mb-3 text-lg font-semibold">Security</h2>
         <div className="rounded-lg border border-border/15 p-5">
+          {!hasPassword && (
+            <p className="mb-4 text-sm text-muted-foreground">
+              Your account was created with Google. Set a password to also sign
+              in with your email and password.
+            </p>
+          )}
           <form onSubmit={handleChangePassword} className="space-y-4">
             {error && (
               <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
@@ -195,23 +299,94 @@ export default function SettingsPage() {
               <div className="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-2 text-sm text-green-600">{success}</div>
             )}
 
-            <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium">Current password</label>
-              <input id="currentPassword" type="password" value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-            </div>
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium">New password</label>
-              <input id="newPassword" type="password" value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)} minLength={8}
-                className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+            {hasPassword && (
+              <div className="space-y-1.5">
+                <Label htmlFor="currentPassword">Current password</Label>
+                <Input id="currentPassword" type="password" value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)} />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="newPassword">New password</Label>
+              <Input id="newPassword" type="password" value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)} minLength={8} />
             </div>
 
             <Button type="submit" disabled={loading}>
-              <Key className="h-4 w-4" /> {loading ? "Updating..." : "Change password"}
+              <Key className="h-4 w-4" />{" "}
+              {loading
+                ? "Saving..."
+                : hasPassword
+                  ? "Change password"
+                  : "Set password"}
             </Button>
           </form>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-semibold">Notifications</h2>
+        <div className="rounded-lg border border-border/15 p-5">
+          {(prefsError || prefsQuery.isError) && (
+            <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+              {prefsError ||
+                (prefsQuery.error instanceof Error
+                  ? prefsQuery.error.message
+                  : "Failed to load notification preferences")}
+            </div>
+          )}
+          {prefsSaved && (
+            <div className="mb-4 rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-2 text-sm text-green-600">
+              {prefsSaved}
+            </div>
+          )}
+
+          {prefsQuery.isLoading && !prefs ? (
+            <p className="text-sm text-muted-foreground">
+              Loading notification preferences...
+            </p>
+          ) : prefs ? (
+            <div className="space-y-4">
+              {(Object.keys(CATEGORY_LABELS) as NotificationPreferenceCategory[]).map(
+                (category) => (
+                  <div key={category}>
+                    <p className="text-sm font-medium">
+                      {CATEGORY_LABELS[category].label}
+                    </p>
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      {CATEGORY_LABELS[category].desc}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                      {CHANNELS.map((channel) => (
+                        <label
+                          key={channel.key}
+                          className="flex cursor-pointer items-center gap-2"
+                        >
+                          <Switch
+                            checked={prefs[category][channel.key]}
+                            onCheckedChange={() =>
+                              handleToggle(category, channel.key)
+                            }
+                          />
+                          <span className="text-sm">{channel.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )
+              )}
+
+              <Button
+                type="button"
+                className="mt-2"
+                disabled={updatePrefs.isPending}
+                onClick={handleSavePreferences}
+              >
+                <Bell className="h-4 w-4" />{" "}
+                {updatePrefs.isPending ? "Saving..." : "Save preferences"}
+              </Button>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

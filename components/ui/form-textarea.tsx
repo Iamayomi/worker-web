@@ -9,19 +9,23 @@ interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaEle
 }
 
 const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
-  ({ label, error, className, id, ...props }, ref) => {
+  ({ label, error, required, className, id, ...props }, ref) => {
     const inputId = id || label.toLowerCase().replace(/\s+/g, "-");
     return (
-      <div>
-        <Label htmlFor={inputId}>{label}</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor={inputId}>
+          {label}
+          {required && <span className="text-foreground"> *</span>}
+        </Label>
         <Textarea
           ref={ref}
           id={inputId}
+          required={required}
           className={cn(error && "border-destructive", className)}
           aria-invalid={!!error}
           {...props}
         />
-        {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
     );
   },
@@ -29,4 +33,3 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
 FormTextarea.displayName = "FormTextarea";
 
 export { FormTextarea };
-

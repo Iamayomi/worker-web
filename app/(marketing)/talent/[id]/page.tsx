@@ -1,0 +1,256 @@
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
+import {
+  Briefcase,
+  FileText,
+  Globe,
+  Link2,
+  MapPin,
+  Phone,
+  Share2,
+  User,
+} from "lucide-react";
+import { usePublicTalentProfile } from "@/lib/hooks/use-profiles";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorAlert } from "@/components/shared/error-alert";
+import { AnimatedContent } from "@/components/shared/animated-content";
+
+const employmentLabel = (value?: string) =>
+  EMPLOYMENT_TYPES.find((t) => t.value === value)?.label ?? value;
+
+const preferenceLabel = (value?: string) =>
+  WORK_PREFERENCES.find((t) => t.value === value)?.label ?? value;
+
+const genderLabel = (value?: string) =>
+  value ? value.charAt(0).toUpperCase() + value.slice(1) : undefined;
+
+function InfoRow({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2">
+      <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon className="h-4 w-4" />
+        {label}
+      </span>
+      <span className="text-right text-sm font-medium">{children}</span>
+    </div>
+  );
+}
+
+export default function PublicTalentProfilePage() {
+  const params = useParams<{ id: string }>();
+  const { data: profile, isLoading, isError, error } = usePublicTalentProfile(
+    params.id
+  );
+
+  usePageTitle(
+    profile ? `${profile.firstName} ${profile.lastName}` : "Talent profile"
+  );
+
+  const share = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Profile link copied");
+    } catch {
+      toast.error("Could not copy profile link");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <AnimatedContent className="mx-auto max-w-2xl px-5 py-10 sm:px-8">
+        <div className="space-y-3">
+          <Skeleton className="h-32 rounded-2xl" />
+          <Skeleton className="h-44 rounded-2xl" />
+          <Skeleton className="h-44 rounded-2xl" />
+        </div>
+      </AnimatedContent>
+    );
+  }
+
+  if (isError || !profile) {
+    return (
+      <AnimatedContent className="mx-auto max-w-2xl px-5 py-10 sm:px-8">
+        <ErrorAlert
+          message={
+            error instanceof Error
+              ? error.message
+              : "This profile is not available."
+          }
+        />
+        <div className="mt-4">
+          <Button asChild variant="outline">
+            <Link href="/jobs">Browse jobs</Link>
+          </Button>
+        </div>
+      </AnimatedContent>
+    );
+  }
+
+  const fullName = [profile.firstName, profile.lastName]
+    .filter(Boolean)
+    .join(" ");
+  const initials =
+    [profile.firstName, profile.lastName]
+      .filter(Boolean)
+      .map((name) => name[0]?.toUpperCase() ?? "")
+      .join("") || "T";
+  const location = [profile.country, profile.stateOfResidence]
+    .filter(Boolean)
+    .join(", ");
+  const years = profile.yearsOfExperience;
+  const yearsLabel = years
+    ? years === 1
+      ? "1 year"
+      : `${years} years`
+    : undefined;
+
+  return (
+    <AnimatedContent className="mx-auto max-w-2xl px-5 py-10 sm:px-8">
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-border/15 bg-card p-6 shadow-sm sm:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex min-w-0 items-start gap-4">
+              <Avatar className="size-16">
+                {profile.avatarUrl && (
+                  <AvatarImage
+                    src={profile.avatarUrl}
+                    alt={fullName}
+                    className="object-cover"
+                  />
+                )}
+                <AvatarFallback className="text-lg font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <h1 className="truncate text-2xl font-bold tracking-tight">
+                  {fullName}
+                </h1>
+                <p className="mt-1 text-sm font-medium text-primary">
+                  {profile.professionalTitle ?? "Talent"}
+                </p>
+                {location && (
+                  <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    {location}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button variant="outline" onClick={share}>
+              <Share2 className="h-4 w-4" />
+              Share profile
+            </Button>
+          </div>
+
+          {profile.bio && (
+            <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+              {profile.bio}
+            </p>
+          )}
+
+          {profile.skills && profile.skills.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {profile.skills.map((skill) => (
+                <Badge key={skill} variant="secondary">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-border/15 bg-card p-6 shadow-sm sm:p-8">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Details
+          </h2>
+          <div className="mt-2 divide-y divide-border">
+            <InfoRow icon={Briefcase} label="Experience">
+              {yearsLabel ?? "Any level"}
+            </InfoRow>
+            <InfoRow icon={Briefcase} label="Employment type">
+              {employmentLabel(profile.employmentType) ?? "Any"}
+            </InfoRow>
+            <InfoRow icon={Briefcase} label="Work preference">
+              {preferenceLabel(profile.workPreference) ?? "Any"}
+            </InfoRow>
+            {profile.gender && (
+              <InfoRow icon={User} label="Gender">
+                {genderLabel(profile.gender)}
+              </InfoRow>
+            )}
+            {profile.phone && (
+              <InfoRow icon={Phone} label="Phone">
+                {profile.phone}
+              </InfoRow>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border/15 bg-card p-6 shadow-sm sm:p-8">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Links
+          </h2>
+          <div className="mt-2 space-y-2">
+            {profile.resumeUrl && (
+              <a
+                href={profile.resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                <FileText className="h-4 w-4" />
+                View CV
+              </a>
+            )}
+            {profile.portfolioUrl && (
+              <a
+                href={profile.portfolioUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                <Globe className="h-4 w-4" />
+                Portfolio
+              </a>
+            )}
+            {profile.linkedinUrl && (
+              <a
+                href={profile.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                <Link2 className="h-4 w-4" />
+                LinkedIn
+              </a>
+            )}
+            {!profile.resumeUrl &&
+              !profile.portfolioUrl &&
+              !profile.linkedinUrl && (
+                <p className="text-sm text-muted-foreground">
+                  No links shared yet.
+                </p>
+              )}
+          </div>
+        </div>
+      </div>
+    </AnimatedContent>
+  );
+}

@@ -3,16 +3,18 @@
 import { useEffect, useState, Suspense, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { LoaderCircle, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Select,
   SelectContent,
@@ -269,7 +271,8 @@ function TalentProfileForm({
   });
 
   const selectedSkills = form.watch("skills") || [];
-  const stateOptions = COUNTRY_STATES[form.watch("country")] || [];
+  const selectedCountry = form.watch("country");
+  const stateOptions = COUNTRY_STATES[selectedCountry] || [];
   const yearsValue = form.watch("yearsOfExperience");
 
   const addSkill = (skill: string) => {
@@ -355,7 +358,7 @@ function TalentProfileForm({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>State of residence</Label>
           {stateOptions.length > 0 ? (
@@ -385,7 +388,19 @@ function TalentProfileForm({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="cp-phone">Phone</Label>
-          <Input id="cp-phone" type="tel" placeholder="+234..." {...form.register("phone")} />
+          <Controller
+            name="phone"
+            control={form.control}
+            render={({ field }) => (
+              <PhoneInput
+                id="cp-phone"
+                country={selectedCountry}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
         </div>
       </div>
 
@@ -671,6 +686,8 @@ function ClientProfileForm({
     },
   });
 
+  const selectedCountry = form.watch("country");
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -698,12 +715,24 @@ function ClientProfileForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="cp-client-phone">
             Phone number<span className="text-foreground"> *</span>
           </Label>
-          <Input id="cp-client-phone" type="tel" placeholder="+234..." {...form.register("phone")} />
+          <Controller
+            name="phone"
+            control={form.control}
+            render={({ field }) => (
+              <PhoneInput
+                id="cp-client-phone"
+                country={selectedCountry}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
           {form.formState.errors.phone && (
             <p className="text-sm text-destructive">
               {form.formState.errors.phone.message}
@@ -841,6 +870,7 @@ function ClientProfileForm({
 }
 
 export default function CompleteProfilePage() {
+  usePageTitle("Complete Your Profile");
   return (
     <Suspense
       fallback={

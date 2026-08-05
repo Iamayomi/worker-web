@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   Settings,
   LogOut,
@@ -12,29 +12,24 @@ import {
   ShieldAlert,
   PanelLeft,
   X,
-  ChevronDown,
+  Briefcase,
+  FileText,
+  LayoutDashboard,
+  Gift,
   UserPlus,
+  PlusCircle,
   Users,
-  ShieldCheck,
+  Settings2,
+  BadgeCheck,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getInviteableRoles } from "@/lib/constants/enums";
-import { UserRole } from "@/types/api/auth";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { DashboardHeaderSkeleton } from "@/components/shared/skeletons";
+import { AccountType, UserRole } from "@/types/api/auth";
+import { TalentHeader, UserMenu } from "@/components/layout/talent-header";
+import { useClientProfile } from "@/lib/hooks/use-profiles";
 
-const utilityLinks = [
-  { href: "/notifications", label: "Notifications", icon: Bell },
-  { href: "/sessions", label: "Sessions", icon: ShieldAlert },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+type NavLinkItem = { href: string; label: string; icon: LucideIcon };
+type NavSection = { title: string; links: NavLinkItem[] };
 
 function NavLinks({
   pathname,
@@ -46,15 +41,60 @@ function NavLinks({
   const { user } = useAuth();
   const isActive = (path: string) => pathname.startsWith(path);
   const myRoles = (user?.roles ?? []) as UserRole[];
-  const canInvite = getInviteableRoles(myRoles).length > 0;
   const isAdmin =
     myRoles.includes(UserRole.SUPER_ADMIN) || myRoles.includes(UserRole.ADMIN);
+  const isClient = user?.accountType === AccountType.CLIENT;
 
-  const managementLinks = [
-    ...(canInvite ? [{ href: "/invite", label: "Invite user", icon: UserPlus }] : []),
-    { href: "/invitees", label: "My invitees", icon: Users },
-    ...(isAdmin ? [{ href: "/admin", label: "User management", icon: ShieldCheck }] : []),
+  const sections: NavSection[] = [
+    {
+      title: "Dashboard",
+      links: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+    },
   ];
+
+  if (isAdmin) {
+    sections.push({
+      title: "Management",
+      links: [
+        { href: "/admin", label: "User management", icon: Users },
+        { href: "/jobs/manage", label: "Job management", icon: Briefcase },
+        { href: "/applications/manage", label: "Applications", icon: FileText },
+        { href: "/admin/content", label: "Content management", icon: Settings2 },
+      ],
+    });
+  } else if (isClient) {
+    sections.push({
+      title: "Jobs",
+      links: [
+        { href: "/jobs/mine", label: "My jobs", icon: Briefcase },
+        { href: "/dashboard/jobs/new", label: "Post a job", icon: PlusCircle },
+      ],
+    });
+  } else {
+    sections.push({
+      title: "Jobs",
+      links: [{ href: "/jobs", label: "Browse jobs", icon: Briefcase }],
+    });
+  }
+
+  sections.push({
+    title: "Referral",
+    links: [{ href: "/dashboard/referral", label: "Referral", icon: Gift }],
+  });
+
+  sections.push({
+    title: "Account",
+    links: [
+      ...(isAdmin || isClient
+        ? [{ href: "/invite", label: "Invite team", icon: UserPlus }]
+        : []),
+      ...(isAdmin
+        ? [{ href: "/notifications", label: "Notifications", icon: Bell }]
+        : []),
+      { href: "/sessions", label: "Sessions", icon: ShieldAlert },
+      { href: "/settings", label: "Settings", icon: Settings },
+    ],
+  });
 
   const linkClass = (href: string) =>
     `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
@@ -65,31 +105,43 @@ function NavLinks({
 
   return (
     <>
-      <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Management</div>
-      {managementLinks.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          onClick={onNavigate}
-          className={linkClass(link.href)}
-        >
-          <link.icon className="h-4 w-4" />
-          {link.label}
-        </Link>
-      ))}
-      <div className="mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Account</div>
-      {utilityLinks.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          onClick={onNavigate}
-          className={linkClass(link.href)}
-        >
-          <link.icon className="h-4 w-4" />
-          {link.label}
-        </Link>
+      {sections.map((section, index) => (
+        <div key={section.title}>
+          <div
+            className={
+              index === 0
+                ? "mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                : "mb-2 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            }
+          >
+            {section.title}
+          </div>
+          {section.links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={onNavigate}
+              className={linkClass(link.href)}
+            >
+              <link.icon className="h-4 w-4" />
+              {link.label}
+            </Link>
+          ))}
+        </div>
       ))}
     </>
+  );
+}
+
+function SidebarLogo({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <Link
+      href="/"
+      onClick={onNavigate}
+      className="flex h-16 items-center gap-2 border-b border-border/15 px-6 hover:opacity-80"
+    >
+      <span className="text-lg font-bold tracking-tight">Worker</span>
+    </Link>
   );
 }
 
@@ -120,58 +172,6 @@ function SidebarFooter({
   );
 }
 
-function UserMenu() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-
-  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "";
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-full border border-border p-0.5 pr-3 transition-colors"
-        >
-          <Avatar className="size-8">
-            <AvatarFallback className="text-xs font-semibold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <span className="hidden max-w-32 truncate text-sm font-medium sm:block">
-            {user?.email}
-          </span>
-          <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground sm:block" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>
-          <p className="truncate">{user?.accountType}</p>
-          <p className="truncate text-xs font-normal text-muted-foreground">
-            {user?.email}
-          </p>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => router.push("/settings")}
-          className="cursor-pointer"
-        >
-          <Settings />
-          Settings
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => logout()}
-          variant="destructive"
-          className="cursor-pointer"
-        >
-          <LogOut />
-          Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user, accessToken, logout } = useAuth();
   const router = useRouter();
@@ -181,6 +181,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const needsAuth = true;
   const pendingAuth = isLoading || (accessToken && !isAuthenticated);
 
+  const myRoles = (user?.roles ?? []) as UserRole[];
+  const isAdmin =
+    myRoles.includes(UserRole.SUPER_ADMIN) || myRoles.includes(UserRole.ADMIN);
+  const isTalent = user?.accountType === AccountType.TALENT && !isAdmin;
+  const isClient = user?.accountType === AccountType.CLIENT && !isAdmin;
+  const { data: clientProfile } = useClientProfile(isClient);
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !accessToken) {
       router.push("/login");
@@ -188,21 +195,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [isLoading, isAuthenticated, accessToken, router]);
 
   if (pendingAuth) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
+    return <DashboardHeaderSkeleton />;
   }
 
   if (!isAuthenticated && needsAuth) return null;
 
+  if (isTalent) {
+    return (
+      <div className="flex h-screen flex-col overflow-hidden">
+        <TalentHeader pathname={pathname} />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       <aside className="hidden w-64 flex-col border-r border-border/15 bg-background lg:flex">
-        <Link href="/" className="flex h-16 items-center border-b border-border/15 px-6 hover:opacity-80">
-          <span className="text-lg font-bold tracking-tight">Worker</span>
-        </Link>
+        <SidebarLogo />
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
           <NavLinks pathname={pathname} />
         </nav>
@@ -216,9 +226,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             className="absolute left-0 top-0 flex h-full w-64 flex-col border-r border-border/15 bg-background"
             onClick={(e) => e.stopPropagation()}
           >
-            <Link href="/" onClick={() => setMenuOpen(false)} className="flex h-16 items-center border-b border-border/15 px-6 hover:opacity-80">
-              <span className="text-lg font-bold tracking-tight">Worker</span>
-            </Link>
+            <SidebarLogo onNavigate={() => setMenuOpen(false)} />
             <nav className="flex-1 space-y-1 overflow-y-auto p-4">
               <NavLinks pathname={pathname} onNavigate={() => setMenuOpen(false)} />
             </nav>
@@ -244,9 +252,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               {menuOpen ? <X className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
             </button>
-            <h1 className="text-lg font-semibold">Dashboard</h1>
+            <h1 className="flex items-center gap-2 text-lg font-semibold">
+              {isClient ? (
+                <>
+                  <span className="truncate">
+                    {clientProfile?.companyName ?? "Dashboard"}
+                  </span>
+                  {clientProfile?.verificationStatus === "verified" && (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600">
+                      <BadgeCheck className="h-3.5 w-3.5" />
+                      Verified
+                    </span>
+                  )}
+                </>
+              ) : (
+                "Dashboard"
+              )}
+            </h1>
           </div>
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            {!isClient && (
+              <Link
+                href="/notifications"
+                aria-label="Notifications"
+                className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                <Bell className="h-5 w-5" />
+              </Link>
+            )}
+            <UserMenu />
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>

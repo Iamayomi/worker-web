@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -147,6 +148,7 @@ function VerifyEmailForm() {
 }
 
 export default function VerifyEmailPage() {
+  usePageTitle("Verify Email");
   return (
     <Suspense>
       <VerifyEmailForm />

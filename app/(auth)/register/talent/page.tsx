@@ -3,16 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, type KeyboardEvent } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { Check, LoaderCircle, Lock, Mail, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -74,6 +76,7 @@ const errorMessage = (error: unknown, fallback: string) => {
 };
 
 export default function RegisterTalentPage() {
+  usePageTitle("Create Talent Account");
   const [showPassword, setShowPassword] = useState(false);
   const [verification, setVerification] = useState<{
     email: string;
@@ -384,11 +387,18 @@ export default function RegisterTalentPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="talent-phone">Phone</Label>
-                    <Input
-                      id="talent-phone"
-                      type="tel"
-                      placeholder="+234..."
-                      {...form.register("phone")}
+                    <Controller
+                      name="phone"
+                      control={form.control}
+                      render={({ field }) => (
+                        <PhoneInput
+                          id="talent-phone"
+                          country={selectedCountry}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
+                      )}
                     />
                   </div>
                 </div>

@@ -1,4 +1,9 @@
 import { AccountType, UserRole } from "@/types/api/auth";
+import {
+  ApplicationStatus,
+  ApplicationType,
+  JobStatus,
+} from "@/types/api/jobs";
 
 export const WORK_PREFERENCES = [
   { value: "remote", label: "Remote" },
@@ -22,13 +27,50 @@ export const AVAILABILITY_OPTIONS = [
 ] as const;
 
 export const CURRENCIES = [
-  { value: "USD", label: "USD" },
-  { value: "EUR", label: "EUR" },
-  { value: "GBP", label: "GBP" },
-  { value: "KES", label: "KES" },
-  { value: "NGN", label: "NGN" },
-  { value: "ZAR", label: "ZAR" },
-  { value: "GHS", label: "GHS" },
+  { value: "usd", label: "USD" },
+  { value: "eur", label: "EUR" },
+  { value: "gbp", label: "GBP" },
+  { value: "kes", label: "KES" },
+  { value: "ngn", label: "NGN" },
+  { value: "zar", label: "ZAR" },
+  { value: "ghs", label: "GHS" },
+] as const;
+
+export const JOB_STATUSES = [
+  { value: JobStatus.DRAFT, label: "Draft" },
+  { value: JobStatus.PUBLISHED, label: "Published" },
+  { value: JobStatus.CLOSED, label: "Closed" },
+  { value: JobStatus.FILLED, label: "Filled" },
+  { value: JobStatus.EXPIRED, label: "Expired" },
+] as const;
+
+export const APPLICATION_TYPES = [
+  {
+    value: ApplicationType.EASY_APPLY,
+    label: "Easy Apply",
+    description: "Applicants apply in the app",
+  },
+  {
+    value: ApplicationType.EMAIL,
+    label: "Email address",
+    description: "Applicants apply via email",
+  },
+  {
+    value: ApplicationType.EXTERNAL_LINK,
+    label: "External link",
+    description: "Applicants apply on another website",
+  },
+] as const;
+
+export const APPLICATION_STATUSES = [
+  { value: ApplicationStatus.APPLIED, label: "Applied" },
+  { value: ApplicationStatus.UNDER_REVIEW, label: "Under review" },
+  { value: ApplicationStatus.SHORTLISTED, label: "Shortlisted" },
+  { value: ApplicationStatus.INTERVIEW, label: "Interview" },
+  { value: ApplicationStatus.OFFERED, label: "Offered" },
+  { value: ApplicationStatus.ACCEPTED, label: "Accepted" },
+  { value: ApplicationStatus.REJECTED, label: "Rejected" },
+  { value: ApplicationStatus.WITHDRAWN, label: "Withdrawn" },
 ] as const;
 
 export const COMPANY_SIZES = [

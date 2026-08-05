@@ -1,9 +1,11 @@
 "use client";
 
 import { useSessions, useRevokeSession, useRevokeAllSessions } from "@/lib/hooks/use-sessions";
+import type { SessionData } from "@/lib/types/api";
 import { Button } from "@/components/ui/button";
 import { Monitor, Smartphone, Globe, Trash2, LogOut } from "lucide-react";
 import { AnimatedContent } from "@/components/shared/animated-content";
+import { SectionSkeleton } from "@/components/shared/skeletons";
 
 function getDeviceIcon(ua?: string) {
   if (!ua) return Globe;
@@ -12,9 +14,9 @@ function getDeviceIcon(ua?: string) {
   return Monitor;
 }
 
-function SessionRow({ s }: { s: any }) {
-  const revoke = useRevokeSession(s.id);
-  const DeviceIcon = getDeviceIcon(s.user_agent || s.device_info);
+function SessionRow({ s }: { s: SessionData }) {
+  const revoke = useRevokeSession(s.session_id);
+  const DeviceIcon = getDeviceIcon(s.device_info);
 
   return (
     <div
@@ -35,7 +37,7 @@ function SessionRow({ s }: { s: any }) {
           </p>
           <p className="text-xs text-muted-foreground">
             {s.ip_address && `${s.ip_address} · `}
-            {s.last_active_at && `Last active ${new Date(s.last_active_at).toLocaleDateString()}`}
+            {s.last_accessed_at && `Last active ${new Date(s.last_accessed_at).toLocaleDateString()}`}
           </p>
         </div>
       </div>
@@ -51,13 +53,13 @@ function SessionRow({ s }: { s: any }) {
 export default function SessionsPage() {
   const { data: sessions, isLoading, error } = useSessions();
   const revokeAll = useRevokeAllSessions();
-  const list = (sessions as any[]) || [];
+  const list = (sessions as SessionData[]) || [];
 
   if (isLoading) {
     return (
       <AnimatedContent>
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="mx-auto max-w-2xl">
+          <SectionSkeleton />
         </div>
       </AnimatedContent>
     );
@@ -88,8 +90,8 @@ export default function SessionsPage() {
           {list.length === 0 && (
             <p className="py-8 text-center text-sm text-muted-foreground">No active sessions</p>
           )}
-          {list.map((s: any) => (
-              <SessionRow s={s} />
+          {list.map((s: SessionData) => (
+              <SessionRow key={s.session_id} s={s} />
           ))}
         </div>
     </div>

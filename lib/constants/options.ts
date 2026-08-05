@@ -40,6 +40,40 @@ export const COMPANY_SIZE_OPTIONS = [
   { value: "500+", label: "500+ employees" },
 ] as const;
 
+export const JOB_CATEGORIES = [
+  "Engineering",
+  "Design",
+  "Data",
+  "Product",
+  "Sales",
+  "Marketing",
+  "Customer Support",
+  "Finance",
+  "HR",
+] as const;
+
+export const JOB_EXPERIENCE_LEVELS = [
+  "Entry-level",
+  "Mid-level",
+  "Senior",
+  "Lead",
+] as const;
+
+export const POST_CATEGORIES = [
+  "Blog",
+  "Job search guide",
+  "Hiring guides",
+  "Career advice",
+  "Interview tips",
+  "Company news",
+] as const;
+
+export const POST_STATUSES = [
+  { value: "draft", label: "Draft" },
+  { value: "published", label: "Published" },
+  { value: "archived", label: "Archived" },
+] as const;
+
 export const OTHER_OPTION = "__other__";
 
 export const PROFESSIONAL_TITLES = [
@@ -170,6 +204,33 @@ export const COUNTRIES = [
   "Brazil",
   "Mexico",
 ] as const;
+
+export const COUNTRY_DIAL_CODES: Record<string, string> = {
+  Nigeria: "+234",
+  Kenya: "+254",
+  Ghana: "+233",
+  "South Africa": "+27",
+  Uganda: "+256",
+  Tanzania: "+255",
+  Rwanda: "+250",
+  Ethiopia: "+251",
+  Egypt: "+20",
+  Morocco: "+212",
+  "United States": "+1",
+  "United Kingdom": "+44",
+  Canada: "+1",
+  Australia: "+61",
+  Germany: "+49",
+  France: "+33",
+  Netherlands: "+31",
+  Spain: "+34",
+  Portugal: "+351",
+  India: "+91",
+  "United Arab Emirates": "+971",
+  "Saudi Arabia": "+966",
+  Brazil: "+55",
+  Mexico: "+52",
+};
 
 export const COUNTRY_STATES: Record<string, string[]> = {
   Nigeria: [

@@ -92,7 +92,7 @@ export function SmartSearch() {
           {filtered.slice(0, 5).map((role) => (
             <Link
               key={role.title}
-              href="/#jobs"
+              href="/jobs"
               className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-primary/5"
             >
               <div className="min-w-0 flex-1">

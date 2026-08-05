@@ -8,6 +8,7 @@ import { LoaderCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { z } from "zod";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
+  usePageTitle("Forgot Password");
   const router = useRouter();
 
   const form = useForm<ForgotPasswordValues>({

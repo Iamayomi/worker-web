@@ -1,45 +1,63 @@
-import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectOption {
+  value: string;
   label: string;
-  error?: string;
-  options: readonly { value: string; label: string }[] | { value: string; label: string }[];
-  placeholder?: string;
 }
 
-const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
-  ({ label, error, options, placeholder, className, id, ...props }, ref) => {
-    const inputId = id || label.toLowerCase().replace(/\s+/g, "-");
-    return (
-      <div>
-        <Label htmlFor={inputId}>{label}</Label>
-        <select
-          ref={ref}
-          id={inputId}
-          className={cn(
-            "flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none",
-            "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-            "disabled:cursor-not-allowed disabled:opacity-50",
-            error && "border-destructive",
-            className,
-          )}
-          {...props}
+interface FormSelectProps {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: readonly SelectOption[] | SelectOption[];
+  placeholder?: string;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+  className?: string;
+}
+
+export function FormSelect({
+  label,
+  value,
+  onValueChange,
+  options,
+  placeholder,
+  error,
+  required,
+  disabled,
+  className,
+}: FormSelectProps) {
+  return (
+    <div className="space-y-1.5">
+      <Label>
+        {label}
+        {required && <span className="text-foreground"> *</span>}
+      </Label>
+      <Select value={value || undefined} onValueChange={onValueChange} disabled={disabled}>
+        <SelectTrigger
+          className={cn("w-full", error && "border-destructive", className)}
+          aria-invalid={!!error}
         >
-          {placeholder && <option value="">{placeholder}</option>}
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
+            <SelectItem key={opt.value} value={opt.value}>
               {opt.label}
-            </option>
+            </SelectItem>
           ))}
-        </select>
-        {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
-      </div>
-    );
-  },
-);
-FormSelect.displayName = "FormSelect";
-
-export { FormSelect };
-
+        </SelectContent>
+      </Select>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+    </div>
+  );
+}

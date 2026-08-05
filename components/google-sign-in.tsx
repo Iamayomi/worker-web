@@ -7,8 +7,11 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 
 import { useGoogleAuth } from "@/hooks/api/useAuth";
+import { worker } from "@/lib/api/worker";
 import { AccountType } from "@/types/api/auth";
 import { GoogleIcon } from "@/components/icons/google-icon";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const GOOGLE_CLIENT_ID =
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
@@ -56,14 +59,24 @@ export function GoogleSignInButton({
   const router = useRouter();
   const googleAuth = useGoogleAuth();
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [scriptFailed, setScriptFailed] = useState(false);
+  const [scriptLoaded, setScriptLoaded] = useState(
+    () => typeof window !== "undefined" && Boolean(window.google?.accounts?.id)
+  );
+  const [scriptFailed, setScriptFailed] = useState(!GOOGLE_CLIENT_ID);
+
+  const [passwordStep, setPasswordStep] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [pendingDestination, setPendingDestination] = useState<{
+    type: string;
+    profileComplete: boolean;
+  } | null>(null);
 
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID) {
-      setScriptFailed(true);
-      return;
-    }
+    if (!GOOGLE_CLIENT_ID) return;
+
+    if (window.google?.accounts?.id) return;
 
     const loadScript = () => {
       const script = document.createElement("script");
@@ -75,12 +88,48 @@ export function GoogleSignInButton({
       document.head.appendChild(script);
     };
 
-    if (window.google?.accounts?.id) {
-      setScriptLoaded(true);
-    } else {
-      loadScript();
-    }
+    loadScript();
   }, []);
+
+  const continueAfterPassword = () => {
+    if (!pendingDestination) {
+      router.push("/");
+      return;
+    }
+    if (!pendingDestination.profileComplete) {
+      router.push(`/complete-profile?type=${pendingDestination.type}`);
+      return;
+    }
+    router.push("/");
+  };
+
+  const handleSetPassword = async () => {
+    setPasswordError("");
+    if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const res = await worker.auth.post("/auth/change-password", {
+        new_password: password,
+      });
+      if (!res.success) {
+        setPasswordError(res.message || "Failed to set password");
+        setPasswordLoading(false);
+        return;
+      }
+      toast.success("Password set. You can now sign in with email and password.");
+      continueAfterPassword();
+    } catch {
+      setPasswordError("Failed to set password. Please try again.");
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleSkipPassword = () => {
+    continueAfterPassword();
+  };
 
   const handleGoogleResponse = (response: { credential: string }) => {
     const payload = decodeJwtPayload(response.credential);
@@ -104,9 +153,17 @@ export function GoogleSignInButton({
       {
         onSuccess: (data) => {
           toast.success(data.message || "Signed in with Google");
+          const type =
+            accountType || data.data.user.accountType || AccountType.TALENT;
+          if (data.data.is_new_user) {
+            setPendingDestination({
+              type,
+              profileComplete: data.data.profile_complete,
+            });
+            setPasswordStep(true);
+            return;
+          }
           if (!data.data.profile_complete) {
-            const type =
-              accountType || data.data.user.accountType || AccountType.TALENT;
             router.push(`/complete-profile?type=${type}`);
           } else {
             router.push("/");
@@ -135,6 +192,54 @@ export function GoogleSignInButton({
 
     window.google.accounts.id.prompt();
   };
+
+  if (passwordStep) {
+    return (
+      <div
+        className={`w-full space-y-3 rounded-md border border-border bg-background p-4 text-left ${className}`}
+      >
+        <div>
+          <p className="text-sm font-semibold">Set a password</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Your Google account was created. Set a password so you can also
+            sign in with your email and password.
+          </p>
+        </div>
+        <Input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password (min 8 characters)"
+          minLength={8}
+        />
+        {passwordError && (
+          <p className="text-xs text-destructive">{passwordError}</p>
+        )}
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleSetPassword}
+            disabled={passwordLoading}
+            className="flex-1"
+          >
+            {passwordLoading && (
+              <LoaderCircle className="size-4 animate-spin" />
+            )}
+            {passwordLoading ? "Saving..." : "Set password & continue"}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={handleSkipPassword}
+          >
+            Skip
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <button

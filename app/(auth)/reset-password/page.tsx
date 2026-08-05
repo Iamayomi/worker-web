@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LoaderCircle, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -202,6 +203,7 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+  usePageTitle("Reset Password");
   return (
     <Suspense>
       <ResetPasswordForm />

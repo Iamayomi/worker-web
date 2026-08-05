@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Eye, EyeOff, LoaderCircle, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ import { loginFormSchema } from "@/schemas";
 import { getDashboardRoute } from "@/lib/utils";
 
 export default function LoginPage() {
+  usePageTitle("Login");
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 

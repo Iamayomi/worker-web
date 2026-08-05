@@ -6,8 +6,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 export default function AcceptInvitePage(props: { searchParams: Promise<{ token?: string }> }) {
+  usePageTitle("Accept Invite");
   const searchParams = use(props.searchParams);
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
@@ -65,33 +70,41 @@ export default function AcceptInvitePage(props: { searchParams: Promise<{ token?
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium">First name</label>
-              <input id="firstName" required value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+            <div className="space-y-1.5">
+              <Label htmlFor="firstName">
+                First name<span className="text-foreground"> *</span>
+              </Label>
+              <Input id="firstName" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
             </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium">Last name</label>
-              <input id="lastName" required value={lastName} onChange={(e) => setLastName(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+            <div className="space-y-1.5">
+              <Label htmlFor="lastName">
+                Last name<span className="text-foreground"> *</span>
+              </Label>
+              <Input id="lastName" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium">Password</label>
-            <input id="password" type="password" required minLength={8} value={password}
+          <div className="space-y-1.5">
+            <Label htmlFor="password">
+              Password<span className="text-foreground"> *</span>
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              required
+              minLength={8}
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="Min. 8 characters" />
+              placeholder="Min. 8 characters"
+            />
           </div>
 
           <div className="flex items-start gap-3">
-            <input
+            <Checkbox
               id="invite-terms"
-              type="checkbox"
               checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="mt-1 size-4 rounded border-input accent-primary"
+              onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+              className="mt-1"
             />
             <label
               htmlFor="invite-terms"
