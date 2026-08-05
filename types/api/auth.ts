@@ -56,9 +56,11 @@ export interface User {
   emailVerified: boolean;
   phoneVerified: boolean;
   status: UserStatus;
+  hasPassword: boolean;
   tempPassword: boolean;
   termsAccepted: boolean;
   invitedBy?: string;
+  invitedByEmail?: string;
   invitedAt?: string;
   lastLoginAt?: string;
   totalInvited: number;

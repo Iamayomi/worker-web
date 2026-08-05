@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, type KeyboardEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   ArrowRight,
@@ -25,6 +26,14 @@ import { Footer } from "@/components/layout/footer";
 import { WorldMap } from "@/components/world-map";
 import { AppleIcon } from "@/components/icons/apple-icon";
 import { GooglePlayIcon } from "@/components/icons/google-play-icon";
+import { worker } from "@/lib/api/worker";
+import type { JobListData, Job as ApiJob } from "@/types/api/jobs";
+import type { Post as ApiPost, PostListData } from "@/types/api/posts";
+import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
+import {
+  JOB_CATEGORIES,
+  JOB_EXPERIENCE_LEVELS,
+} from "@/lib/constants/options";
 import {
   Select,
   SelectContent,
@@ -34,6 +43,8 @@ import {
 } from "@/components/ui/select";
 
 type Job = {
+  id?: string;
+  slug?: string;
   company: string;
   title: string;
   location: string;
@@ -45,7 +56,62 @@ type Job = {
   match?: "Perfect Match" | "Solid Match";
 };
 
-const jobs: Job[] = [
+type BlogPost = {
+  slug?: string;
+  tag: string;
+  title: string;
+  excerpt: string;
+  meta: string;
+};
+
+function toBlogPost(post: ApiPost): BlogPost {
+  return {
+    slug: post.slug,
+    tag: post.category ?? "Article",
+    title: post.title,
+    excerpt: post.excerpt ?? "",
+    meta: post.publishedAt
+      ? new Date(post.publishedAt).toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "New",
+  };
+}
+
+function toLandingJob(job: ApiJob): Job {
+  const preference =
+    WORK_PREFERENCES.find((p) => p.value === job.workPreference)?.label ?? "";
+  const type =
+    EMPLOYMENT_TYPES.find((t) => t.value === job.employmentType)?.label ??
+    job.employmentType;
+  const currency = (job.currency ?? "USD").toUpperCase();
+  const salary =
+    job.salaryMin != null && job.salaryMax != null
+      ? `${currency} ${job.salaryMin.toLocaleString()} – ${currency} ${job.salaryMax.toLocaleString()}`
+      : job.salaryMin != null
+        ? `${currency} ${job.salaryMin.toLocaleString()}+`
+        : job.salaryMax != null
+          ? `Up to ${currency} ${job.salaryMax.toLocaleString()}`
+          : "Salary negotiable";
+
+  return {
+    id: job.id,
+    slug: job.slug,
+    company: job.companyName ?? "Company",
+    title: job.title,
+    location: job.location ? `${job.location} · ${preference}` : preference,
+    type,
+    salary,
+    category: job.category ?? "Other",
+    skills: job.skillsRequired,
+    experience: job.experienceRequired ?? "Any level",
+    match: job.matchLabel,
+  };
+}
+
+const fallbackJobs: Job[] = [
   { company: "Meridian Labs", title: "Senior Frontend Engineer", location: "Remote · Global", type: "Full-time", salary: "$90k – $140k", category: "Engineering", skills: ["React", "TypeScript", "Next.js"], experience: "Senior", match: "Perfect Match" },
   { company: "Northwind", title: "Backend Engineer · Go", location: "Berlin · Hybrid", type: "Full-time", salary: "€70k – €110k", category: "Engineering", skills: ["Go", "PostgreSQL", "Kubernetes"], experience: "Mid-level", match: "Solid Match" },
   { company: "Aurora Studio", title: "Product Designer", location: "London · Hybrid", type: "Full-time", salary: "£60k – £85k", category: "Design", skills: ["Figma", "Design Systems", "Prototyping"], experience: "Mid-level", match: "Perfect Match" },
@@ -58,13 +124,8 @@ const jobs: Job[] = [
   { company: "Clearview", title: "Marketing Manager", location: "Remote · Global", type: "Full-time", salary: "$70k – $95k", category: "Marketing", skills: ["SEO", "Content", "Analytics"], experience: "Mid-level" },
   { company: "Evergreen Co", title: "Customer Support Specialist", location: "Remote · EMEA", type: "Full-time", salary: "$35k – $50k", category: "Customer Support", skills: ["Zendesk", "Emails", "CSAT"], experience: "Entry-level" },
   { company: "Finli Group", title: "Financial Analyst", location: "London · On-site", type: "Full-time", salary: "£45k – £65k", category: "Finance", skills: ["Excel", "Forecasting", "Reporting"], experience: "Mid-level" },
-  { company: "TrueNorth", title: "HR Business Partner", location: "New York · Hybrid", type: "Full-time", salary: "$85k – $110k", category: "HR", skills: ["Recruiting", "Onboarding", "People Ops"], experience: "Senior" },
   { company: "Kite Digital", title: "Account Executive", location: "Remote · US", type: "Full-time", salary: "$60k – $90k + commission", category: "Sales", skills: ["Enterprise Sales", "Negotiation", "CRM"], experience: "Mid-level" },
 ];
-
-const categories = ["Engineering", "Design", "Data", "Product", "Sales", "Marketing", "Customer Support", "Finance", "HR"];
-const locations = ["Remote · Global", "Remote · EMEA", "Remote · US", "Berlin · Hybrid", "London · Hybrid", "London · On-site", "New York · Remote", "New York · Hybrid", "Amsterdam · Hybrid"];
-const experienceLevels = ["Entry-level", "Mid-level", "Senior", "Lead"];
 
 const categoryMeta: { name: string; icon: typeof Code; description: string }[] = [
   { name: "Engineering", icon: Code, description: "Frontend, backend, mobile, DevOps" },
@@ -104,24 +165,24 @@ const testimonials = [
   },
 ];
 
-const resources = [
+const fallbackBlog: BlogPost[] = [
   {
     tag: "Hiring",
     title: "How to write a job post that gets real responses",
     excerpt: "Clear titles, honest salary bands, and the five sections every strong job post needs.",
-    minutes: "6 min read",
+    meta: "6 min read",
   },
   {
     tag: "Remote work",
     title: "Remote hiring in 2026: the complete global guide",
     excerpt: "Payroll, contracts, time zones, and culture across 40+ countries — everything you need.",
-    minutes: "11 min read",
+    meta: "11 min read",
   },
   {
     tag: "Careers",
     title: "How to stand out as a candidate on Worker",
     excerpt: "Make your profile match-ready: skills, experience, and what recruiters scan for first.",
-    minutes: "4 min read",
+    meta: "4 min read",
   },
 ];
 
@@ -139,9 +200,65 @@ const trustBadges = [
   { icon: BadgeCheck, text: "Verified profiles" },
 ];
 
+const locations = ["Remote · Global", "Remote · EMEA", "Remote · US", "Berlin · Hybrid", "London · Hybrid", "London · On-site", "New York · Remote", "New York · Hybrid", "Amsterdam · Hybrid"];
+
+const WORK_PREFERENCE_BY_SUFFIX: Record<string, string> = {
+  Remote: "remote",
+  Hybrid: "hybrid",
+  "On-site": "on-site",
+};
+
+function locationToParams(value: string): {
+  location?: string;
+  workPreference?: string;
+} {
+  if (value === "Anywhere") return {};
+  const [loc, suffix] = value.split(" · ");
+  return {
+    location: loc,
+    workPreference: suffix ? WORK_PREFERENCE_BY_SUFFIX[suffix] : undefined,
+  };
+}
+
 export default function LandingPage() {
+  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(true);
+  const [jobs, setJobs] = useState<Job[]>(fallbackJobs);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(fallbackBlog);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [jobsRes, postsRes] = await Promise.allSettled([
+          worker.get<JobListData>("/jobs?limit=50"),
+          worker.get<PostListData>("/content/posts?limit=3"),
+        ]);
+        if (!cancelled) {
+          if (
+            jobsRes.status === "fulfilled" &&
+            jobsRes.value.success &&
+            jobsRes.value.data?.jobs?.length
+          ) {
+            setJobs(jobsRes.value.data.jobs.map(toLandingJob));
+          }
+          if (
+            postsRes.status === "fulfilled" &&
+            postsRes.value.success &&
+            postsRes.value.data?.posts?.length
+          ) {
+            setBlogPosts(postsRes.value.data.posts.map(toBlogPost));
+          }
+        }
+      } catch {
+        // Keep the fallback lists when the API is unavailable.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -165,6 +282,24 @@ export default function LandingPage() {
   const applyCategory = (cat: string) => {
     setCategory(cat);
     document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const searchHref = (() => {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("query", query.trim());
+    if (category !== "All") params.set("category", category);
+    if (experience !== "Any level") params.set("experience", experience);
+    const { location: loc, workPreference } = locationToParams(location);
+    if (loc) params.set("location", loc);
+    if (workPreference) params.set("workPreference", workPreference);
+    return params.toString() ? `/jobs?${params.toString()}` : "/jobs";
+  })();
+
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      router.push(searchHref);
+    }
   };
 
   const filtered = jobs.filter((job) => {
@@ -223,6 +358,7 @@ export default function LandingPage() {
                     <input
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={handleSearchKeyDown}
                       placeholder="Job title, keyword, or company"
                       className="mt-1 w-full bg-transparent text-base font-medium focus:outline-none placeholder:text-muted-foreground/60"
                     />
@@ -255,7 +391,7 @@ export default function LandingPage() {
                       </SelectTrigger>
                       <SelectContent position="popper" className="min-w-[var(--radix-select-trigger-width)]">
                         <SelectItem value="All">All</SelectItem>
-                        {categories.map((cat) => (
+                        {JOB_CATEGORIES.map((cat) => (
                           <SelectItem key={cat} value={cat}>
                             {cat}
                           </SelectItem>
@@ -273,7 +409,7 @@ export default function LandingPage() {
                       </SelectTrigger>
                       <SelectContent position="popper" className="min-w-[var(--radix-select-trigger-width)]">
                         <SelectItem value="Any level">Any level</SelectItem>
-                        {experienceLevels.map((level) => (
+                        {JOB_EXPERIENCE_LEVELS.map((level) => (
                           <SelectItem key={level} value={level}>
                             {level}
                           </SelectItem>
@@ -283,7 +419,7 @@ export default function LandingPage() {
                   </div>
                   <div className="border-t border-border p-3 text-left md:border-l md:border-t-0">
                     <Link
-                      href="/#jobs"
+                      href={searchHref}
                       className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 md:h-full"
                     >
                       <Search className="h-[18px] w-[18px]" />
@@ -338,7 +474,7 @@ export default function LandingPage() {
                 <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Latest jobs</h2>
                 <p className="mt-2 text-muted-foreground">{filtered.length} roles matching your search</p>
               </div>
-              <Link href="/#jobs" className="text-sm font-medium text-primary hover:underline">
+              <Link href="/jobs" className="text-sm font-medium text-primary hover:underline">
                 View all jobs
               </Link>
             </div>
@@ -346,7 +482,7 @@ export default function LandingPage() {
             <div className="divide-y divide-border rounded-xl border border-border bg-card">
               {filtered.map((job) => (
                 <div
-                  key={job.title}
+                  key={job.id ?? job.title}
                   className="group flex flex-col gap-4 p-6 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
@@ -381,7 +517,7 @@ export default function LandingPage() {
                       </span>
                     )}
                     <Link
-                      href="/register"
+                      href={job.slug ? `/jobs/${job.slug}` : "/jobs"}
                       className="inline-flex h-10 items-center justify-center rounded-md border border-border px-5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
                     >
                       Apply
@@ -531,8 +667,8 @@ export default function LandingPage() {
                     "Post an open role and get matched with verified candidates, or search jobs that fit your skills.",
                   image:
                     "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&q=80&auto=format&fit=crop",
-                  alt: "Black professional woman at work",
-                  href: "/#jobs",
+                  alt: "Professional working on a laptop",
+                  href: "/jobs",
                   cta: "Browse jobs",
                 },
                 {
@@ -654,15 +790,15 @@ export default function LandingPage() {
                   Guides on hiring, landing roles, and building a global career.
                 </p>
               </div>
-              <Link href="/#jobs" className="hidden items-center gap-1 text-sm font-medium text-primary hover:underline sm:inline-flex">
+              <Link href="/blog" className="hidden items-center gap-1 text-sm font-medium text-primary hover:underline sm:inline-flex">
                 View all articles <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
             <div className="mt-10 grid gap-6 md:grid-cols-3">
-              {resources.map((post) => (
+              {blogPosts.map((post) => (
                 <Link
                   key={post.title}
-                  href="/#jobs"
+                  href={post.slug ? `/resources/${post.slug}` : "/resources"}
                   className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-shadow hover:shadow-lg"
                 >
                   <span className="text-xs font-semibold uppercase tracking-wider text-primary">
@@ -672,7 +808,7 @@ export default function LandingPage() {
                     {post.title}
                   </h3>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{post.excerpt}</p>
-                  <span className="mt-4 text-sm text-muted-foreground">{post.minutes}</span>
+                  <span className="mt-4 text-sm text-muted-foreground">{post.meta}</span>
                 </Link>
               ))}
             </div>
@@ -776,7 +912,7 @@ export default function LandingPage() {
               <Link href="/register" className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-6 text-base font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
                 Create a free account
               </Link>
-              <Link href="/#jobs" className="inline-flex h-11 items-center justify-center rounded-md border border-border bg-background px-6 text-base font-medium transition-colors hover:bg-muted">
+              <Link href="/jobs" className="inline-flex h-11 items-center justify-center rounded-md border border-border bg-background px-6 text-base font-medium transition-colors hover:bg-muted">
                 Browse jobs
               </Link>
             </div>

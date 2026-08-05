@@ -8,6 +8,6 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getDashboardRoute(user: Pick<User, "accountType" | "roles">): string {
   void user;
-  return "/settings";
+  return "/dashboard";
 }
 

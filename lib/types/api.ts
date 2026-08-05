@@ -6,22 +6,43 @@ export interface IApiResponse<T> {
 
 export interface NotificationData {
   id: string;
-  title: string;
-  body?: string;
-  is_read: boolean;
+  userId: string;
   type: string;
-  entity_type?: string;
-  entity_id?: string;
-  created_at: string;
-  read_at?: string;
+  category: string;
+  title: string;
+  message: string;
+  status: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
+export interface ChannelPreferences {
+  inApp: boolean;
+  email: boolean;
+  push: boolean;
+}
+
+export type NotificationPreferenceCategory =
+  | "applications"
+  | "offers"
+  | "jobs"
+  | "system"
+  | "auth";
+
+export type NotificationPreferences = Record<
+  NotificationPreferenceCategory,
+  ChannelPreferences
+>;
+
 export interface SessionData {
-  id: string;
-  ip_address: string;
+  session_id: string;
+  user_id: string;
   device_info: string;
-  is_current: boolean;
+  ip_address: string;
   created_at: string;
-  last_seen_at: string;
-  expires_at?: string;
+  last_accessed_at: string;
+  expires_at: string;
+  is_active: boolean;
+  is_current: boolean;
 }

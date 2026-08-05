@@ -28,17 +28,6 @@ export const registerClientSchema = z.object({
   }),
 });
 
-export const registerPartnerSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  organization_name: z.string().min(1, "Organization name is required"),
-  termsAccepted: z.boolean().refine((v) => v, {
-    message: "You must accept the Terms & Conditions and Privacy Policy",
-  }),
-});
-
 export const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
 });

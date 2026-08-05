@@ -7,6 +7,8 @@ import { ChevronDown, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { cn, getDashboardRoute } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
 import { useLogout } from "@/hooks/api/useAuth";
+import { ROLE_LABELS } from "@/lib/constants/enums";
+import { UserRole } from "@/types/api/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -142,19 +144,19 @@ const navItems: NavItem[] = [
       {
         title: "By field",
         links: [
-          { label: "Engineering", href: "/#jobs" },
-          { label: "Design", href: "/#jobs" },
-          { label: "Sales", href: "/#jobs" },
-          { label: "Marketing", href: "/#jobs" },
-          { label: "Finance", href: "/#jobs" },
+          { label: "Engineering", href: "/jobs" },
+          { label: "Design", href: "/jobs" },
+          { label: "Sales", href: "/jobs" },
+          { label: "Marketing", href: "/jobs" },
+          { label: "Finance", href: "/jobs" },
         ],
       },
       {
         title: "By type",
         links: [
-          { label: "Full-time", href: "/#jobs" },
-          { label: "Contract", href: "/#jobs" },
-          { label: "Remote", href: "/#jobs" },
+          { label: "Full-time", href: "/jobs" },
+          { label: "Contract", href: "/jobs" },
+          { label: "Remote", href: "/jobs" },
         ],
       },
     ],
@@ -163,7 +165,8 @@ const navItems: NavItem[] = [
   {
     label: "Talent",
     tagline: "Hire or get hired",
-    description: "Connect with verified professionals or create a profile that gets you matched.",
+    description:
+      "Connect with verified professionals or create a profile that gets you matched.",
     columns: [
       {
         title: "For companies",
@@ -176,9 +179,9 @@ const navItems: NavItem[] = [
       {
         title: "For talent",
         links: [
-          { label: "Create profile", href: "/register" },
-          { label: "Get matched", href: "/register" },
-          { label: "Career advice", href: "/#jobs" },
+          { label: "Create profile", href: "/register/talent" },
+          { label: "Get matched", href: "/talent" },
+          { label: "Career advice", href: "/resources?category=Career+advice" },
         ],
       },
     ],
@@ -209,14 +212,14 @@ const navItems: NavItem[] = [
       {
         title: "Learn",
         links: [
-          { label: "Blog", href: "/#jobs" },
-          { label: "Job search guides", href: "/#jobs" },
-          { label: "Hiring guides", href: "/#jobs" },
-          { label: "FAQ", href: "/#jobs" },
+          { label: "Blog", href: "/blog" },
+          { label: "Job search guides", href: "/resources?category=Job+search+guide" },
+          { label: "Hiring guides", href: "/resources?category=Hiring+guides" },
+          { label: "Career advice", href: "/resources?category=Career+advice" },
         ],
       },
     ],
-    cta: { label: "Browse resources", href: "/#jobs" },
+    cta: { label: "Browse resources", href: "/resources" },
   },
 ];
 
@@ -226,6 +229,13 @@ function UserMenu() {
   const router = useRouter();
 
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? "";
+  const roles = ((user?.roles ?? []) as UserRole[]).filter(
+    (role) => role !== UserRole.USER
+  );
+  const roleLabel =
+    roles.length > 0
+      ? roles.map((role) => ROLE_LABELS[role] ?? role).join(", ")
+      : user?.accountType ?? "";
 
   return (
     <DropdownMenu>
@@ -247,7 +257,7 @@ function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
-          <p className="truncate">{user?.accountType}</p>
+          <p className="truncate capitalize">{roleLabel}</p>
           <p className="truncate text-xs font-normal text-muted-foreground">
             {user?.email}
           </p>
@@ -385,7 +395,7 @@ export function Header() {
               <ul className="mt-4 space-y-3">
                 {["Senior Frontend Engineer", "Marketing Manager", "Customer Support Specialist"].map((role) => (
                   <li key={role}>
-                    <Link href="/#jobs" onClick={() => setActive(null)} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                    <Link href="/jobs" onClick={() => setActive(null)} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                       {role}
                     </Link>
                   </li>

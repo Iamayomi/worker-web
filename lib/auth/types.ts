@@ -27,6 +27,7 @@ export interface UserData {
   emailVerified: boolean;
   phoneVerified: boolean;
   status: string;
+  hasPassword: boolean;
   tempPassword: boolean;
   termsAccepted: boolean;
   invitedBy?: string;

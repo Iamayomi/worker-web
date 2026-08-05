@@ -12,10 +12,21 @@ import {
 } from "@/lib/constants/enums";
 import type { AccountType, UserRole } from "@/types/api/auth";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Mail, ShieldCheck } from "lucide-react";
 import { AnimatedContent } from "@/components/shared/animated-content";
+import { PageHeader } from "@/components/shared/page-header";
+import { InviteSubNav } from "@/components/invite/invite-sub-nav";
 
-export default function InvitePage() {
+export default function InviteUserPage() {
   const { user } = useAuth();
   const invite = useInviteUser();
 
@@ -75,111 +86,104 @@ export default function InvitePage() {
   }
 
   return (
-    <AnimatedContent>
-      <div className="mx-auto max-w-2xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Invite a user</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Send an invitation email so they can join and set up their account.
-          </p>
+    <AnimatedContent className="mx-auto max-w-2xl space-y-6">
+      <PageHeader
+        title="Invite a user"
+        description="Send an invitation email so they can join and set up their account."
+      />
+
+      <InviteSubNav />
+
+      {invite.isError && (
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {invite.error instanceof Error
+            ? invite.error.message
+            : "Failed to send invite"}
+        </div>
+      )}
+      {invite.isSuccess && (
+        <div className="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-600">
+          Invitation sent to {lastInvited}.
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-lg border border-border/15 p-5"
+      >
+        <div className="space-y-1.5">
+          <Label htmlFor="invite-email">
+            Email address<span className="text-foreground"> *</span>
+          </Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="invite-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="colleague@company.com"
+              className="pl-9"
+            />
+          </div>
         </div>
 
-        {invite.isError && (
-          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {invite.error instanceof Error
-              ? invite.error.message
-              : "Failed to send invite"}
-          </div>
-        )}
-        {invite.isSuccess && (
-          <div className="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-600">
-            Invitation sent to {lastInvited}.
-          </div>
-        )}
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 rounded-lg border border-border/15 p-5"
-        >
-          <div>
-            <label
-              htmlFor="invite-email"
-              className="mb-1 block text-sm font-medium"
-            >
-              Email address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                id="invite-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="colleague@company.com"
-                className="block w-full rounded-lg border border-input bg-background py-2 pl-10 pr-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="invite-account-type"
-              className="mb-1 block text-sm font-medium"
-            >
-              Account type
-            </label>
-            <select
-              id="invite-account-type"
-              value={accountType}
-              onChange={(e) => selectAccountType(e.target.value as AccountType)}
-              className="block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="">Select account type</option>
-              {allowedAccountTypes.map((type) => (
-                <option key={type} value={type}>
-                  {ACCOUNT_TYPE_LABELS[type]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="invite-role"
-              className="mb-1 block text-sm font-medium"
-            >
-              Role
-            </label>
-            <select
-              id="invite-role"
-              value={role}
-              disabled={!accountType}
-              onChange={(e) => setRole(e.target.value as UserRole)}
-              className="block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-            >
-              <option value="">
-                {accountType ? "Select role" : "Select account type first"}
-              </option>
-              {roleOptions.map((r) => (
-                <option key={r} value={r}>
-                  {ROLE_LABELS[r]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <Button
-            type="submit"
-            disabled={
-              invite.isPending || !email.trim() || !accountType || !role
-            }
+        <div className="space-y-1.5">
+          <Label>
+            Account type<span className="text-foreground"> *</span>
+          </Label>
+          <Select
+            value={accountType || undefined}
+            onValueChange={(value) => selectAccountType(value as AccountType)}
           >
-            <ShieldCheck className="h-4 w-4" />
-            {invite.isPending ? "Sending..." : "Send invite"}
-          </Button>
-        </form>
-      </div>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select account type" />
+            </SelectTrigger>
+            <SelectContent>
+              {allowedAccountTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {ACCOUNT_TYPE_LABELS[type]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>
+            Role<span className="text-foreground"> *</span>
+          </Label>
+          <Select
+            value={role || undefined}
+            onValueChange={(value) => setRole(value as UserRole)}
+            disabled={!accountType}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue
+                placeholder={accountType ? "Select role" : "Select account type first"}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {roleOptions.map((r) => (
+                <SelectItem key={r} value={r}>
+                  {ROLE_LABELS[r]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={
+            invite.isPending || !email.trim() || !accountType || !role
+          }
+        >
+          <ShieldCheck className="h-4 w-4" />
+          {invite.isPending ? "Sending..." : "Send invite"}
+        </Button>
+      </form>
     </AnimatedContent>
   );
 }
