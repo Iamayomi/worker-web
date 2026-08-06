@@ -34,6 +34,7 @@ export interface UserData {
   invitedAt?: string;
   lastLoginAt?: string;
   totalInvited: number;
+  avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

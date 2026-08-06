@@ -10,6 +10,7 @@ import {
   LogOut,
   Bell,
   ShieldAlert,
+  ShieldCheck,
   PanelLeft,
   X,
   Briefcase,
@@ -27,6 +28,7 @@ import { DashboardHeaderSkeleton } from "@/components/shared/skeletons";
 import { AccountType, UserRole } from "@/types/api/auth";
 import { TalentHeader, UserMenu } from "@/components/layout/talent-header";
 import { useClientProfile } from "@/lib/hooks/use-profiles";
+import { useUnreadCount } from "@/lib/hooks/use-notifications";
 
 type NavLinkItem = { href: string; label: string; icon: LucideIcon };
 type NavSection = { title: string; links: NavLinkItem[] };
@@ -48,7 +50,9 @@ function NavLinks({
   const sections: NavSection[] = [
     {
       title: "Dashboard",
-      links: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+      links: [
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      ],
     },
   ];
 
@@ -82,14 +86,20 @@ function NavLinks({
     links: [{ href: "/dashboard/referral", label: "Referral", icon: Gift }],
   });
 
+  if (isAdmin) {
+    sections.push({
+      title: "Trust & safety",
+      links: [
+        { href: "/admin/reports", label: "Trust & safety", icon: ShieldCheck },
+      ],
+    });
+  }
+
   sections.push({
     title: "Account",
     links: [
       ...(isAdmin || isClient
         ? [{ href: "/invite", label: "Invite team", icon: UserPlus }]
-        : []),
-      ...(isAdmin
-        ? [{ href: "/notifications", label: "Notifications", icon: Bell }]
         : []),
       { href: "/sessions", label: "Sessions", icon: ShieldAlert },
       { href: "/settings", label: "Settings", icon: Settings },
@@ -187,6 +197,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isTalent = user?.accountType === AccountType.TALENT && !isAdmin;
   const isClient = user?.accountType === AccountType.CLIENT && !isAdmin;
   const { data: clientProfile } = useClientProfile(isClient);
+  const { data: unread } = useUnreadCount();
+  const unreadCount = unread ?? 0;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !accessToken) {
@@ -271,15 +283,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            {!isClient && (
-              <Link
-                href="/notifications"
-                aria-label="Notifications"
-                className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                <Bell className="h-5 w-5" />
-              </Link>
-            )}
+            <Link
+              href="/notifications"
+              aria-label="Notifications"
+              className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </Link>
             <UserMenu />
           </div>
         </header>

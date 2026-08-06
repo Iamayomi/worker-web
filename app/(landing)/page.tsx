@@ -278,6 +278,7 @@ export default function LandingPage() {
   const [experience, setExperience] = useState("Any level");
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [showNotification, setShowNotification] = useState(true);
 
   const applyCategory = (cat: string) => {
     setCategory(cat);
@@ -921,6 +922,36 @@ export default function LandingPage() {
       </main>
 
       <Footer />
+
+      {showNotification && (
+        <div className="fixed bottom-4 right-4 z-50 flex max-w-sm items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-lg sm:bottom-6 sm:right-6">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <BadgeCheck className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold tracking-tight">New jobs this week</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              30+ verified remote roles were just added. Find your next match.
+            </p>
+            <Link
+              href="/jobs"
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              Browse jobs <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowNotification(false)}
+            aria-label="Dismiss notification"
+            className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

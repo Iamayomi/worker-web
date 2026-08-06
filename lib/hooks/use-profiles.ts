@@ -119,6 +119,22 @@ export function usePublicTalentProfile(id: string) {
   });
 }
 
+export function usePublicClientProfile(id: string) {
+  return useQuery({
+    queryKey: ["client-profiles", "public", id],
+    enabled: Boolean(id),
+    retry: false,
+    queryFn: async () => {
+      const res = await worker.get<ClientProfileData>(
+        `/client-profiles/${id}`
+      );
+      if (!res.success)
+        throw new Error(res.message || "Company not found");
+      return res.data!;
+    },
+  });
+}
+
 export interface UpdateTalentProfileInput {
   firstName?: string;
   lastName?: string;

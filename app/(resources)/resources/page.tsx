@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, FileText } from "lucide-react";
+import { ArrowRight, FileText, TrendingUp } from "lucide-react";
 import { usePosts } from "@/lib/hooks/use-posts";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { POST_CATEGORIES } from "@/lib/constants/options";
@@ -113,6 +113,28 @@ function ResourcesContent() {
 
       <section className="bg-background py-12 sm:py-14">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <Link
+            href="/talent-market-report"
+            className="mb-8 flex flex-col gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-6 transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="flex items-start gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <TrendingUp className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-base font-semibold tracking-tight">
+                  Worker Talent Market Report
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Global hiring trends and salary data for August 2026.
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary">
+              Read the report <ArrowRight className="h-4 w-4" />
+            </span>
+          </Link>
+
           {isError && (
             <div className="mb-6">
               <ErrorAlert

@@ -66,6 +66,7 @@ export const POST_CATEGORIES = [
   "Career advice",
   "Interview tips",
   "Company news",
+  "Market Report",
 ] as const;
 
 export const POST_STATUSES = [

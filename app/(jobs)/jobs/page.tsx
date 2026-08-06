@@ -26,6 +26,7 @@ import { AnimatedContent } from "@/components/shared/animated-content";
 import { ErrorAlert } from "@/components/shared/error-alert";
 import { Pagination } from "@/components/shared/pagination";
 import { formatSalary } from "@/components/jobs/job-card";
+import { CompanyLink } from "@/components/jobs/company-link";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import type { Job } from "@/types/api/jobs";
 import type { EmploymentType, WorkPreference } from "@/types/api/auth";
@@ -44,7 +45,15 @@ function JobRow({ job }: { job: Job }) {
     <div className="group flex flex-col gap-4 p-6 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <p className="text-sm font-medium text-muted-foreground">
-          {job.companyName ?? "Company"}
+          {job.companyName ? (
+            <CompanyLink
+              clientProfileId={job.clientProfileId}
+              companyName={job.companyName}
+              className="text-sm"
+            />
+          ) : (
+            "Company"
+          )}
         </p>
         <h3 className="mt-1 text-xl font-semibold tracking-tight group-hover:text-primary">
           {job.title}
@@ -105,6 +114,9 @@ function JobsContent() {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState(searchParams.get("query") ?? "");
   const [location, setLocation] = useState(searchParams.get("location") ?? "");
+  const [clientProfileId, setClientProfileId] = useState(
+    searchParams.get("clientProfileId") ?? ""
+  );
   const [category, setCategory] = useState(searchParams.get("category") ?? "");
   const [experience, setExperience] = useState(
     searchParams.get("experience") ?? ""
@@ -129,6 +141,7 @@ function JobsContent() {
     experience: experience || undefined,
     workPreference: workPreference || undefined,
     employmentType: employmentType || undefined,
+    clientProfileId: clientProfileId || undefined,
     sort,
     page,
     limit,
@@ -145,6 +158,7 @@ function JobsContent() {
   const clearFilters = () => {
     setQuery("");
     setLocation("");
+    setClientProfileId("");
     setCategory("");
     setExperience("");
     setWorkPreference("");

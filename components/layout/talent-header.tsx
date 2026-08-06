@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Bell,
+  Bookmark,
   Building2,
   ChevronDown,
   Gift,
@@ -12,17 +13,18 @@ import {
   Moon,
   PanelLeft,
   Settings,
-  ShieldAlert,
   Sun,
   User,
   X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useTalentProfile } from "@/lib/hooks/use-profiles";
+import { useUnreadCount } from "@/lib/hooks/use-notifications";
 import { useTheme } from "next-themes";
 import { AccountType, UserRole } from "@/types/api/auth";
 import { ROLE_LABELS } from "@/lib/constants/enums";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { GlobalSearch } from "@/components/layout/global-search";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -83,15 +85,17 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {(isClient || isTalent) && (
-          <DropdownMenuItem
-            onSelect={() =>
-              router.push(isClient ? "/client-profile" : "/profile")
-            }
-            className="cursor-pointer"
-          >
-            {isClient ? <Building2 /> : <User />}
-            {isClient ? "Company profile" : "Profile"}
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem
+              onSelect={() =>
+                router.push(isClient ? "/client-profile" : "/profile")
+              }
+              className="cursor-pointer"
+            >
+              {isClient ? <Building2 /> : <User />}
+              Profile
+            </DropdownMenuItem>
+          </>
         )}
         {showAccountLinks && (
           <>
@@ -103,11 +107,11 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
               Referral
             </DropdownMenuItem>
             <DropdownMenuItem
-              onSelect={() => router.push("/sessions")}
+              onSelect={() => router.push("/saved-jobs")}
               className="cursor-pointer"
             >
-              <ShieldAlert />
-              Sessions
+              <Bookmark />
+              Saved jobs
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
@@ -143,11 +147,12 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
 const talentLinks = [
   { href: "/dashboard", label: "Home" },
   { href: "/jobs", label: "Jobs" },
-  { href: "/saved-jobs", label: "Saved jobs" },
 ];
 
 function TalentHeader({ pathname }: { pathname: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: unread } = useUnreadCount();
+  const unreadCount = unread ?? 0;
   const linkClass = (href: string) =>
     `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
       pathname === href || pathname.startsWith(href + "/")
@@ -173,6 +178,7 @@ function TalentHeader({ pathname }: { pathname: string }) {
           >
             Worker
           </Link>
+          <GlobalSearch />
         </div>
         <nav className="hidden items-center gap-1 lg:flex">
           {talentLinks.map((link) => (
@@ -185,9 +191,14 @@ function TalentHeader({ pathname }: { pathname: string }) {
           <Link
             href="/notifications"
             aria-label="Notifications"
-            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </Link>
           <UserMenu showAccountLinks />
         </div>

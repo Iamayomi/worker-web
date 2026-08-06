@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { MapPin, Building2, Clock } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
 import type { Job } from "@/types/api/jobs";
 import { Badge } from "@/components/ui/badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
+import { CompanyLink } from "@/components/jobs/company-link";
 import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
 
 const employmentLabel = (value: string) =>
@@ -40,10 +41,10 @@ export function JobCard({ job }: { job: Job }) {
           <h3 className="truncate text-base font-semibold">{job.title}</h3>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             {job.companyName && (
-              <span className="inline-flex items-center gap-1">
-                <Building2 className="h-3.5 w-3.5" />
-                {job.companyName}
-              </span>
+              <CompanyLink
+                clientProfileId={job.clientProfileId}
+                companyName={job.companyName}
+              />
             )}
             <span className="inline-flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" />

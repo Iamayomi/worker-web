@@ -57,4 +57,18 @@ export const queryKeys = {
     bySlug: (slug: string) => ["content", "pages", slug] as const,
     adminList: () => ["content", "pages", "admin"] as const,
   },
+  chat: {
+    all: ["chat"] as const,
+    conversations: (params: object) => ["chat", "conversations", params] as const,
+    conversation: (id: string) => ["chat", "conversations", id] as const,
+    messages: (conversationId: string) =>
+      ["chat", "conversations", conversationId, "messages"] as const,
+    unreadCount: () => ["chat", "unread-count"] as const,
+  },
+  analytics: {
+    all: ["analytics"] as const,
+    talent: (days?: number) => ["analytics", "talent", { days }] as const,
+    client: (days?: number) => ["analytics", "client", { days }] as const,
+    preferences: () => ["analytics", "preferences"] as const,
+  },
 };
