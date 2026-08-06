@@ -28,6 +28,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ApplyJobDialog } from "@/components/jobs/apply-job-dialog";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { ShareJobButton } from "@/components/jobs/share-job-button";
+import { CompanyLink } from "@/components/jobs/company-link";
 import { formatDate, formatSalary } from "@/components/jobs/job-card";
 
 const employmentLabel = (value: string) =>
@@ -124,7 +125,11 @@ export default function JobDetailPage() {
               {job.title}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {job.companyName ?? "Company"} · {job.location}
+              <CompanyLink
+                clientProfileId={job.clientProfileId}
+                companyName={job.companyName ?? "Company"}
+              />{" "}
+              · {job.location}
             </p>
           </div>
 

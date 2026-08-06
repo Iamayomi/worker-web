@@ -142,6 +142,7 @@ export interface JobQueryParams {
   employmentType?: EmploymentType;
   workPreference?: WorkPreference;
   experience?: string;
+  clientProfileId?: string;
   sort?: "newest" | "salary";
   page?: number;
   limit?: number;

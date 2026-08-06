@@ -14,6 +14,7 @@ import { AccountType } from "@/types/api/auth";
 import { AnimatedContent } from "@/components/shared/animated-content";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionCard } from "@/components/shared/section-card";
+import { ClientAnalyticsView } from "@/components/analytics/analytics-views";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -201,6 +202,10 @@ function ClientProfileForm({ profile }: { profile: ClientProfileData }) {
             </div>
           )}
         </div>
+      </SectionCard>
+
+      <SectionCard title="Analytics">
+        <ClientAnalyticsView />
       </SectionCard>
     </>
   );

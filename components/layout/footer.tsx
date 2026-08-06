@@ -27,6 +27,7 @@ const columns = [
     links: [
       { label: "About", href: "/about" },
       { label: "Blog", href: "/blog" },
+      { label: "Market report", href: "/talent-market-report" },
       { label: "Resources", href: "/resources" },
       { label: "Press", href: "/resources" },
     ],

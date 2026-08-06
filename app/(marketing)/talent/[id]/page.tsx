@@ -1,20 +1,27 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Briefcase,
   FileText,
   Globe,
   Link2,
+  LoaderCircle,
   MapPin,
+  MessageCircle,
   Phone,
   Share2,
   User,
 } from "lucide-react";
 import { usePublicTalentProfile } from "@/lib/hooks/use-profiles";
+import { useRecordAnalyticsEvent } from "@/lib/hooks/use-analytics";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useCreateConversation } from "@/lib/hooks/use-chat";
+import { FollowButton } from "@/components/shared/follow-button";
 import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -54,9 +61,14 @@ function InfoRow({
 
 export default function PublicTalentProfilePage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const createConversation = useCreateConversation();
+  const [startingChat, setStartingChat] = useState(false);
   const { data: profile, isLoading, isError, error } = usePublicTalentProfile(
     params.id
   );
+  const recordEvent = useRecordAnalyticsEvent();
 
   usePageTitle(
     profile ? `${profile.firstName} ${profile.lastName}` : "Talent profile"
@@ -71,13 +83,78 @@ export default function PublicTalentProfilePage() {
     }
   };
 
+  const startChat = async () => {
+    if (!profile) return;
+    if (!isAuthenticated) {
+      router.push(
+        `/login?redirect=${encodeURIComponent(`/talent/${profile.userId}`)}`
+      );
+      return;
+    }
+    setStartingChat(true);
+    try {
+      const result = await createConversation.mutateAsync({
+        participantIds: [profile.userId],
+      });
+      if (result?.id) {
+        router.push(`/messages/${result.id}`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start chat");
+    } finally {
+      setStartingChat(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <AnimatedContent className="mx-auto max-w-2xl px-5 py-10 sm:px-8">
-        <div className="space-y-3">
-          <Skeleton className="h-32 rounded-2xl" />
-          <Skeleton className="h-44 rounded-2xl" />
-          <Skeleton className="h-44 rounded-2xl" />
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-border/15 bg-card p-6 shadow-sm sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex min-w-0 items-start gap-4">
+                <Skeleton className="size-16 shrink-0 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-3 pt-1">
+                  <Skeleton className="h-7 w-40 sm:w-56" />
+                  <Skeleton className="h-4 w-24 sm:w-32" />
+                  <Skeleton className="h-4 w-32 sm:w-44" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-9 w-28 rounded-md" />
+                <Skeleton className="h-9 w-28 rounded-md" />
+              </div>
+            </div>
+            <div className="mt-5 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Skeleton className="h-6 w-16 rounded-full" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-14 rounded-full" />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border/15 bg-card p-6 shadow-sm sm:p-8">
+            <Skeleton className="h-4 w-24" />
+            <div className="mt-3 space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border/15 bg-card p-6 shadow-sm sm:p-8">
+            <Skeleton className="h-4 w-16" />
+            <div className="mt-4 space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
         </div>
       </AnimatedContent>
     );
@@ -153,10 +230,25 @@ export default function PublicTalentProfilePage() {
                 )}
               </div>
             </div>
-            <Button variant="outline" onClick={share}>
-              <Share2 className="h-4 w-4" />
-              Share profile
-            </Button>
+            <div className="flex items-center gap-2">
+              <FollowButton targetUserId={profile.userId} showCount />
+              <Button
+                variant="outline"
+                onClick={startChat}
+                disabled={startingChat || authLoading}
+              >
+                {startingChat ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MessageCircle className="h-4 w-4" />
+                )}
+                Message
+              </Button>
+              <Button variant="outline" onClick={share}>
+                <Share2 className="h-4 w-4" />
+                Share profile
+              </Button>
+            </div>
           </div>
 
           {profile.bio && (
@@ -213,6 +305,13 @@ export default function PublicTalentProfilePage() {
                 href={profile.resumeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  recordEvent.mutate({
+                    eventType: "resume_download",
+                    targetType: "talent_profile",
+                    targetId: profile.id,
+                  })
+                }
                 className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
               >
                 <FileText className="h-4 w-4" />

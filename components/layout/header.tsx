@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { Bookmark, ChevronDown, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { cn, getDashboardRoute } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
 import { useLogout } from "@/hooks/api/useAuth";
 import { ROLE_LABELS } from "@/lib/constants/enums";
 import { UserRole } from "@/types/api/auth";
+import { GlobalSearch } from "@/components/layout/global-search";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -271,6 +272,13 @@ function UserMenu() {
           Dashboard
         </DropdownMenuItem>
         <DropdownMenuItem
+          onSelect={() => router.push("/saved-jobs")}
+          className="cursor-pointer"
+        >
+          <Bookmark />
+          Saved jobs
+        </DropdownMenuItem>
+        <DropdownMenuItem
           onSelect={() => router.push("/settings")}
           className="cursor-pointer"
         >
@@ -299,12 +307,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
       <div className="flex h-16 items-center justify-between px-5 sm:px-8">
-        <Link
-          href={user ? getDashboardRoute(user) : "/"}
-          className="text-xl font-bold tracking-tight"
-        >
-          Worker
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href={user ? getDashboardRoute(user) : "/"}
+            className="text-xl font-bold tracking-tight"
+          >
+            Worker
+          </Link>
+          <GlobalSearch />
+        </div>
         <nav className="hidden items-center md:flex">
           {navItems.map((item) => (
             <button

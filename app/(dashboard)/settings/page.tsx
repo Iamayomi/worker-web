@@ -9,12 +9,16 @@ import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
 } from "@/lib/hooks/use-notifications";
+import {
+  useAnalyticsPreferences,
+  useUpdateAnalyticsPreferences,
+} from "@/lib/hooks/use-analytics";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Camera, ChevronRight, Shield, Key, Bell } from "lucide-react";
+import { Camera, ChevronRight, Shield, Key, Bell, Ban, Mail } from "lucide-react";
 import { AnimatedContent } from "@/components/shared/animated-content";
 import type {
   ChannelPreferences,
@@ -55,7 +59,7 @@ const CATEGORY_LABELS: Record<
 };
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const uploadAvatar = useUploadAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -74,6 +78,10 @@ export default function SettingsPage() {
   const [prefsSaved, setPrefsSaved] = useState("");
   const prefsQuery = useNotificationPreferences();
   const updatePrefs = useUpdateNotificationPreferences();
+
+  const analyticsPrefsQuery = useAnalyticsPreferences();
+  const updateAnalyticsPrefs = useUpdateAnalyticsPreferences();
+  const weeklyEmailOptIn = analyticsPrefsQuery.data?.weekly_email_opt_in ?? false;
 
   const prefs: NotificationPreferences | null = useMemo(() => {
     const base = prefsQuery.data;
@@ -152,6 +160,8 @@ export default function SettingsPage() {
         setAvatarPreview(null);
         setAvatarMsg(res?.message ?? "Avatar upload queued for processing");
         if (fileInputRef.current) fileInputRef.current.value = "";
+        setTimeout(() => void refreshUser(), 2000);
+        setTimeout(() => void refreshUser(), 6000);
       },
     });
   }
@@ -192,6 +202,7 @@ export default function SettingsPage() {
       title: "Account",
       items: [
         { icon: Shield, label: "Sessions", desc: "Manage active sessions", href: "/sessions" },
+        { icon: Ban, label: "Blocked users", desc: "Manage users you've blocked", href: "/settings/blocked" },
       ],
     },
   ];
@@ -206,6 +217,19 @@ export default function SettingsPage() {
         <div className="rounded-lg border border-border/15 p-5">
           <div className="flex items-center gap-4">
             <Avatar className="size-16">
+              {avatarPreview ? (
+                <AvatarImage
+                  src={avatarPreview}
+                  alt="Avatar preview"
+                  className="size-full object-cover"
+                />
+              ) : user?.avatarUrl ? (
+                <AvatarImage
+                  src={user.avatarUrl}
+                  alt="Profile picture"
+                  className="size-full object-cover"
+                />
+              ) : null}
               <AvatarFallback className="text-lg font-semibold">
                 {initials}
               </AvatarFallback>
@@ -387,6 +411,32 @@ export default function SettingsPage() {
               </Button>
             </div>
           ) : null}
+        </div>
+
+        <div className="mt-4 rounded-lg border border-border/15 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Mail className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">
+                  Weekly analytics summary
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  A digest of your key metrics is emailed to you every Monday
+                  morning. You can change this anytime.
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={weeklyEmailOptIn}
+              disabled={
+                analyticsPrefsQuery.isLoading || updateAnalyticsPrefs.isPending
+              }
+              onCheckedChange={(value) => updateAnalyticsPrefs.mutate(value)}
+            />
+          </div>
         </div>
       </div>
     </div>

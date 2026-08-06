@@ -17,6 +17,7 @@ import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
 import { AnimatedContent } from "@/components/shared/animated-content";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionCard } from "@/components/shared/section-card";
+import { TalentAnalyticsView } from "@/components/analytics/analytics-views";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -395,11 +396,25 @@ export default function TalentProfilePage() {
             </Field>
           </div>
           <Field label="Resume URL">
-            <Input
-              value={form.resumeUrl}
-              onChange={(e) => set("resumeUrl")(e.target.value)}
-              placeholder="https://"
-            />
+            {form.resumeUrl ? (
+              <div className="flex h-10 items-center gap-2 rounded-md border border-border/15 bg-muted/30 px-3 text-sm">
+                <FileText className="h-4 w-4 shrink-0 text-primary" />
+                <a
+                  href={form.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="truncate font-medium text-primary hover:underline"
+                >
+                  {cvName || "Uploaded CV"}
+                </a>
+              </div>
+            ) : (
+              <Input
+                value={form.resumeUrl}
+                onChange={(e) => set("resumeUrl")(e.target.value)}
+                placeholder="https://"
+              />
+            )}
           </Field>
           <Field label="Portfolio URL">
             <Input
@@ -448,6 +463,10 @@ export default function TalentProfilePage() {
             }
           />
         </div>
+      </SectionCard>
+
+      <SectionCard title="Analytics">
+        <TalentAnalyticsView />
       </SectionCard>
     </AnimatedContent>
   );

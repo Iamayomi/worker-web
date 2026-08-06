@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
+import { AuthenticatedChatFab } from "@/components/chat/authenticated-chat-fab";
 
 import "./globals.css";
 
@@ -35,7 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           disableTransitionOnChange
         >
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              {children}
+              <AuthenticatedChatFab />
+            </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

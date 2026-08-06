@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ChevronRight,
   MapPin,
+  Star,
   XCircle,
 } from "lucide-react";
 import {
@@ -19,10 +20,12 @@ import {
   useUpdateApplicationStatus,
   useUpdateApplicationStatusAdmin,
 } from "@/lib/hooks/use-jobs";
+import { useCreateHireRating } from "@/lib/hooks/use-analytics";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { APPLICATION_STATUS } from "@/lib/constants/status";
 import { APPLICATION_STATUSES } from "@/lib/constants/enums";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormTextarea } from "@/components/ui/form-textarea";
@@ -88,6 +91,86 @@ function Timeline({ application }: { application: Application }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function HireRatingCard({ applicationId }: { applicationId: string }) {
+  const [rating, setRating] = useState(5);
+  const [review, setReview] = useState("");
+  const [done, setDone] = useState(false);
+  const createHireRating = useCreateHireRating();
+
+  const submit = () => {
+    createHireRating.mutate(
+      { applicationId, rating, review: review.trim() || undefined },
+      {
+        onSuccess: () => {
+          toast.success("Hire rating submitted — thank you!");
+          setDone(true);
+        },
+        onError: (err) => {
+          const message = err instanceof Error ? err.message : "";
+          if (/already|rated|rated once/i.test(message)) {
+            setDone(true);
+          } else {
+            toast.error(message || "Failed to submit rating");
+          }
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="rounded-xl border border-border/15 p-5">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Quality of hire
+      </h2>
+      {done ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          Thanks! This hire has been rated.
+        </p>
+      ) : (
+        <>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Rate this candidate&apos;s quality as a hire from 1 to 5. This feeds
+            your quality of hire metric.
+          </p>
+          <div className="mt-3 flex gap-1">
+            {[1, 2, 3, 4, 5].map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setRating(value)}
+                aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
+              >
+                <Star
+                  className={cn(
+                    "h-6 w-6",
+                    value <= rating && "fill-amber-400 text-amber-400"
+                  )}
+                />
+              </button>
+            ))}
+          </div>
+          <FormTextarea
+            className="mt-3"
+            label="Review (optional)"
+            value={review}
+            onChange={(e) => setReview(e.target.value)}
+            rows={3}
+            placeholder="How was the candidate as a hire?"
+          />
+          <Button
+            className="mt-3"
+            onClick={submit}
+            disabled={createHireRating.isPending}
+          >
+            Submit rating
+          </Button>
+        </>
+      )}
     </div>
   );
 }
@@ -341,6 +424,10 @@ export default function ApplicationDetailPage() {
         </h2>
         <Timeline application={application} />
       </div>
+
+      {isClient && application.status === "accepted" && (
+        <HireRatingCard applicationId={application.id} />
+      )}
 
       {!isTerminal && (
         <div className="flex flex-wrap gap-2">
