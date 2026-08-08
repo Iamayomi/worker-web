@@ -49,7 +49,7 @@ function SavedJobRow({ job }: { job: SavedJob }) {
       <div className="flex shrink-0 items-center gap-2">
         <SaveJobButton jobId={job.id} />
         <Link
-          href={`/jobs/${job.slug}`}
+          href={`/jobs/${job.id}`}
           className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-border px-5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
         >
           <MapPin className="hidden" />

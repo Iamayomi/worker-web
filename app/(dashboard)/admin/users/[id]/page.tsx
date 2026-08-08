@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   useGetUser,
@@ -9,7 +11,10 @@ import {
   useActivateUser,
   useDeleteUser,
 } from "@/lib/hooks/use-users";
+import { useCreateConversation } from "@/lib/hooks/use-chat";
+import { useFollowStatus } from "@/lib/hooks/use-follows";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { useTalentProfileByUserId } from "@/lib/hooks/use-profiles";
 import { ACCOUNT_TYPE_LABELS, ROLE_LABELS } from "@/lib/constants/enums";
 import type { UserRole } from "@/types/api/auth";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +23,12 @@ import { DeleteModal } from "@/components/ui/delete-modal";
 import { EditUserModal } from "@/components/admin/edit-user-modal";
 import { AnimatedContent } from "@/components/shared/animated-content";
 import { SectionSkeleton } from "@/components/shared/skeletons";
+import { FollowButton } from "@/components/shared/follow-button";
+import {
+  CertificationList,
+  EducationList,
+  WorkExperienceList,
+} from "@/components/profile/talent-entry-list";
 import {
   Dialog,
   DialogContent,
@@ -31,11 +42,15 @@ import { Label } from "@/components/ui/label";
 import {
   Ban,
   CheckCircle2,
+  LoaderCircle,
   Mail,
+  MessageCircle,
   Shield,
   Trash2,
   User,
   UserCog,
+  Users,
+  UserRound,
 } from "lucide-react";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -78,10 +93,17 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
+  const router = useRouter();
   const { user: currentUser } = useAuth();
 
   const isSuperAdmin = useMemo(
     () => (currentUser?.roles ?? []).includes("super_admin"),
+    [currentUser]
+  );
+  const isAdmin = useMemo(
+    () =>
+      (currentUser?.roles ?? []).includes("super_admin") ||
+      (currentUser?.roles ?? []).includes("admin"),
     [currentUser]
   );
 
@@ -89,13 +111,24 @@ export default function AdminUserDetailPage() {
   const suspendUser = useSuspendUser();
   const activateUser = useActivateUser();
   const deleteUser = useDeleteUser();
+  const createConversation = useCreateConversation();
+  const { data: followStatus } = useFollowStatus(id);
 
-  usePageTitle(user?.email);
+  const isTalent = useMemo(
+    () =>
+      user?.accountType === "talent" ||
+      (user?.roles ?? []).includes("talent" as UserRole),
+    [user]
+  );
+  const { data: talentProfile } = useTalentProfileByUserId(id, isTalent);
 
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [messaging, setMessaging] = useState(false);
+
+  usePageTitle(user?.email);
 
   const isSuspended = user?.status === "suspended";
 
@@ -105,6 +138,25 @@ export default function AdminUserDetailPage() {
       { userId: user.id, reason: reason.trim() || undefined },
       { onSuccess: () => setSuspendOpen(false) }
     );
+  };
+
+  const handleMessage = async () => {
+    if (!user) return;
+    setMessaging(true);
+    try {
+      const result = await createConversation.mutateAsync({
+        participantIds: [user.id],
+      });
+      if (result?.id) {
+        router.push(`/messages/${result.id}`);
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to open conversation"
+      );
+    } finally {
+      setMessaging(false);
+    }
   };
 
   return (
@@ -127,41 +179,82 @@ export default function AdminUserDetailPage() {
                   </Badge>
                 </h1>
               </div>
-              {isSuperAdmin && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setEditOpen(true)}
-                  >
-                    <UserCog className="h-4 w-4" /> Edit
-                  </Button>
-                  {isSuspended ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {isAdmin && (
+                  <>
+                    <FollowButton targetUserId={user.id} />
                     <Button
                       variant="outline"
-                      disabled={activateUser.isPending}
-                      onClick={() => activateUser.mutate(user.id)}
+                      onClick={() => void handleMessage()}
+                      disabled={messaging || createConversation.isPending}
                     >
-                      <CheckCircle2 className="h-4 w-4" /> Activate
+                      {messaging ? (
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <MessageCircle className="h-4 w-4" />
+                      )}
+                      Message
                     </Button>
-                  ) : (
+                  </>
+                )}
+                {isSuperAdmin && (
+                  <>
+                    <Button variant="outline" onClick={() => setEditOpen(true)}>
+                      <UserCog className="h-4 w-4" /> Edit
+                    </Button>
+                    {isSuspended ? (
+                      <Button
+                        variant="outline"
+                        disabled={activateUser.isPending}
+                        onClick={() => activateUser.mutate(user.id)}
+                      >
+                        <CheckCircle2 className="h-4 w-4" /> Activate
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="destructive"
+                        disabled={suspendUser.isPending}
+                        onClick={() => setSuspendOpen(true)}
+                      >
+                        <Ban className="h-4 w-4" /> Suspend
+                      </Button>
+                    )}
                     <Button
-                      variant="destructive"
-                      disabled={suspendUser.isPending}
-                      onClick={() => setSuspendOpen(true)}
+                      variant="ghost"
+                      disabled={deleteUser.isPending}
+                      onClick={() => setDeleteOpen(true)}
                     >
-                      <Ban className="h-4 w-4" /> Suspend
+                      <Trash2 className="h-4 w-4 text-destructive" /> Delete
                     </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    disabled={deleteUser.isPending}
-                    onClick={() => setDeleteOpen(true)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" /> Delete
-                  </Button>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </div>
+
+            {isAdmin && (
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-lg border border-border/15 px-5 py-3">
+                <Link
+                  href={`/admin/users/${id}/followers`}
+                  className="flex items-center gap-2 text-sm transition-colors hover:text-primary"
+                >
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-semibold">
+                    {followStatus?.followerCount ?? 0}
+                  </span>
+                  <span className="text-muted-foreground">followers</span>
+                </Link>
+                <Link
+                  href={`/admin/users/${id}/following`}
+                  className="flex items-center gap-2 text-sm transition-colors hover:text-primary"
+                >
+                  <UserRound className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-semibold">
+                    {followStatus?.followingCount ?? 0}
+                  </span>
+                  <span className="text-muted-foreground">following</span>
+                </Link>
+              </div>
+            )}
 
             <div className="rounded-lg border border-border/15">
               <div className="border-b border-border/15 px-5 py-3 font-semibold">
@@ -214,6 +307,26 @@ export default function AdminUserDetailPage() {
                 />
               </div>
             </div>
+
+            {isTalent && talentProfile && (
+              <div className="space-y-6">
+                <WorkExperienceList
+                  talentProfileId={talentProfile.id}
+                  admin={isAdmin}
+                  editable={isAdmin}
+                />
+                <EducationList
+                  talentProfileId={talentProfile.id}
+                  admin={isAdmin}
+                  editable={isAdmin}
+                />
+                <CertificationList
+                  talentProfileId={talentProfile.id}
+                  admin={isAdmin}
+                  editable={isAdmin}
+                />
+              </div>
+            )}
 
             <div className="rounded-lg border border-border/15">
               <div className="border-b border-border/15 px-5 py-3 font-semibold">

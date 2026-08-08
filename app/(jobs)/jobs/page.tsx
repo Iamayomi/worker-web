@@ -25,6 +25,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { AnimatedContent } from "@/components/shared/animated-content";
 import { ErrorAlert } from "@/components/shared/error-alert";
 import { Pagination } from "@/components/shared/pagination";
+import { JobCardSkeleton } from "@/components/shared/skeletons";
 import { formatSalary } from "@/components/jobs/job-card";
 import { CompanyLink } from "@/components/jobs/company-link";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
@@ -97,7 +98,7 @@ function JobRow({ job }: { job: Job }) {
           <div className="flex items-center gap-2">
             <SaveJobButton jobId={job.id} />
             <Link
-              href={`/jobs/${job.slug}`}
+              href={`/jobs/${job.id}`}
               className="inline-flex h-10 items-center justify-center rounded-md border border-border px-5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
             >
               Apply
@@ -329,8 +330,8 @@ function JobsContent() {
           <div className="flex items-end border-t border-border p-3 text-left md:border-l">
             <Button
               variant="outline"
-              size="sm"
-              className="w-full"
+              size="lg"
+              className="h-12 w-full"
               onClick={clearFilters}
             >
               Clear filters
@@ -342,11 +343,7 @@ function JobsContent() {
       {isError && <ErrorAlert message={error instanceof Error ? error.message : "Failed to load jobs"} />}
 
       {isLoading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-xl border border-border/15 bg-muted" />
-          ))}
-        </div>
+        <JobCardSkeleton count={4} />
       ) : jobs.length === 0 ? (
         <div className="rounded-lg border border-border/15">
           <EmptyState
@@ -372,13 +369,15 @@ function JobsContent() {
             />
           )}
 
-          <p className="text-center text-sm text-muted-foreground">
-            Not seeing the right fit?{" "}
-            <Link href="/register" className="font-medium text-primary hover:underline">
-              Create a talent profile
-            </Link>{" "}
-            to get matched.
-          </p>
+          {!isAuthenticated && (
+            <p className="text-center text-sm text-muted-foreground">
+              Not seeing the right fit?{" "}
+              <Link href="/register" className="font-medium text-primary hover:underline">
+                Create a talent profile
+              </Link>{" "}
+              to get matched.
+            </p>
+          )}
         </>
       )}
     </AnimatedContent>

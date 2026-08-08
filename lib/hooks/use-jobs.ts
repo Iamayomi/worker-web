@@ -5,6 +5,7 @@ import type {
   Application,
   ApplicationAnalyticsData,
   ApplicationListData,
+  ApplicationStatus,
   ApplyJobData,
   ApplyJobInput,
   CreateJobData,
@@ -52,17 +53,6 @@ export function useJob(id: string) {
     queryKey: queryKeys.jobs.detail(id),
     queryFn: async () => {
       const res = await worker.auth.get<Job>(`/jobs/${id}`);
-      if (!res.success) throw new Error(res.message || "Failed to load job");
-      return res.data!;
-    },
-  });
-}
-
-export function useJobBySlug(slug: string) {
-  return useQuery({
-    queryKey: queryKeys.jobs.detail(`slug:${slug}`),
-    queryFn: async () => {
-      const res = await worker.auth.get<Job>(`/jobs/by-slug/${slug}`);
       if (!res.success) throw new Error(res.message || "Failed to load job");
       return res.data!;
     },
@@ -358,6 +348,36 @@ export function useApplication(id: string) {
   });
 }
 
+export function useMyApplications(params: {
+  status?: ApplicationStatus;
+  page?: number;
+  limit?: number;
+} = {}) {
+  const page = params.page ?? 1;
+  const limit = params.limit ?? 20;
+
+  return useQuery({
+    queryKey: queryKeys.applications.list({
+      page,
+      limit,
+      status: params.status,
+    }),
+    queryFn: async () => {
+      const query = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (params.status) query.set("status", params.status);
+      const res = await worker.auth.get<ApplicationListData>(
+        `/applications?${query}`
+      );
+      if (!res.success)
+        throw new Error(res.message || "Failed to load applications");
+      return res.data!;
+    },
+  });
+}
+
 export function useAdminApplication(id: string) {
   return useQuery({
     queryKey: ["applications", "admin-detail", id],
@@ -394,7 +414,6 @@ export interface AdminApplicationRow {
   id: string;
   jobId: string;
   jobTitle: string;
-  jobSlug: string | null;
   companyName: string | null;
   clientEmail: string | null;
   talentProfileId: string;

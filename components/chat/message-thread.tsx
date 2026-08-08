@@ -8,7 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth/auth-context";
 import { chatSocket } from "@/lib/chat/socket";
+import { useIsOnline, useSeedPresence } from "@/lib/hooks/use-presence";
 import { ConversationActions } from "@/components/chat/conversation-actions";
+import { FollowButton } from "@/components/shared/follow-button";
 import {
 	useConversation,
 	useMessages,
@@ -77,6 +79,9 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 	const messages = messagesData?.items ?? [];
 	const other = conversation?.participants.find((p) => p.userId !== user?.id);
 	const currentUserId = user?.id;
+
+	useSeedPresence(conversation?.participants ?? []);
+	const otherOnline = useIsOnline(other?.userId);
 
 	useEffect(() => {
 		if (!conversationId) return;
@@ -200,28 +205,42 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 		<div className="flex h-full flex-col">
 			{/* header */}
 			<div className="flex items-center gap-3 border-b px-5 py-3">
-				<Avatar className="size-9">
-					{other?.avatarUrl ? (
-						<AvatarImage
-							src={other.avatarUrl}
-							alt={other.name || "Avatar"}
-						/>
-					) : null}
-					<AvatarFallback>
-						{initials(other?.name, other?.email)}
-					</AvatarFallback>
-				</Avatar>
+				<span className="relative shrink-0">
+					<Avatar className="size-9">
+						{other?.avatarUrl ? (
+							<AvatarImage
+								src={other.avatarUrl}
+								alt={other.name || "Avatar"}
+							/>
+						) : null}
+						<AvatarFallback>
+							{initials(other?.name, other?.email)}
+						</AvatarFallback>
+					</Avatar>
+					<span
+						className={`absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background ${
+							otherOnline ? "bg-emerald-500" : "bg-muted-foreground/40"
+						}`}
+					/>
+				</span>
 				<div className="min-w-0">
 					<p className="truncate text-sm font-semibold">
 						{other?.name || other?.email || "Unknown"}
 					</p>
-				{conversation?.jobTitle && (
 					<p className="truncate text-xs text-muted-foreground">
-						Re: {conversation.jobTitle}
+						{otherOnline
+							? "Online"
+							: conversation?.jobTitle
+								? `Re: ${conversation.jobTitle}`
+								: "Offline"}
 					</p>
-				)}
 				</div>
-				{other?.userId && <ConversationActions reportedId={other.userId} />}
+				{other?.userId && (
+					<div className="ml-auto flex items-center gap-2">
+						<FollowButton targetUserId={other.userId} />
+						<ConversationActions reportedId={other.userId} />
+					</div>
+				)}
 			</div>
 
 			{/* messages */}

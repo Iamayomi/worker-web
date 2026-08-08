@@ -84,6 +84,26 @@ export function useCreateReport() {
   });
 }
 
+export type ContentTargetType = "post" | "page" | "message" | "comment";
+
+export function useCreateContentReport() {
+  return useMutation({
+    mutationFn: async (data: {
+      targetType: ContentTargetType;
+      targetId: string;
+      reason: string;
+      description?: string;
+    }) => {
+      const res = await worker.auth.post<{ report: { id: string } }>(
+        "/safety/content-reports",
+        data
+      );
+      if (!res.success) throw new Error(res.message || "Failed to submit report");
+      return res.data!;
+    },
+  });
+}
+
 export function useReports(params?: {
   status?: string;
   reason?: string;

@@ -19,10 +19,18 @@ import {
 	useCreateConversation,
 	usePeopleSearch,
 } from "@/lib/hooks/use-chat";
+import { useIsOnline } from "@/lib/hooks/use-presence";
+import { useAuth } from "@/lib/auth/auth-context";
 import type { SearchPeopleItem } from "@/lib/types/chat";
 
-function initials(name?: string, email?: string): string {
-	const source = name || email || "?";
+const ADMIN_ROLES = ["super_admin", "admin"];
+
+function isAdminUser(user?: { roles?: string[] } | null): boolean {
+	return (user?.roles ?? []).some((role) => ADMIN_ROLES.includes(role));
+}
+
+function initials(name?: string): string {
+	const source = name || "?";
 	return source
 		.split(" ")
 		.map((part) => part[0])
@@ -31,8 +39,22 @@ function initials(name?: string, email?: string): string {
 		.toUpperCase();
 }
 
+function PresenceDot({ userId }: { userId: string }) {
+	const online = useIsOnline(userId);
+	return (
+		<span
+			className={`size-2.5 shrink-0 rounded-full ${
+				online ? "bg-emerald-500" : "bg-muted-foreground/40"
+			}`}
+			title={online ? "Online" : "Offline"}
+		/>
+	);
+}
+
 export function NewConversationDialog() {
 	const router = useRouter();
+	const { user } = useAuth();
+	const isAdmin = isAdminUser(user);
 	const createConversation = useCreateConversation();
 	const [query, setQuery] = useState("");
 	const [debounced, setDebounced] = useState("");
@@ -83,15 +105,16 @@ export function NewConversationDialog() {
 				<DialogHeader>
 					<DialogTitle>Find someone to message</DialogTitle>
 					<DialogDescription>
-						Search by name, company or email. You&apos;ll only see people you
-						can start a conversation with.
+						{isAdmin
+							? "Search by name, company or email. You can message anyone on the platform."
+							: "Search by name or company. You'll only see people you can start a conversation with."}
 					</DialogDescription>
 				</DialogHeader>
 				<div className="relative">
 					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						type="text"
-						placeholder="Search people..."
+						placeholder={isAdmin ? "Search name, company or email..." : "Search people..."}
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						className="pl-9"
@@ -125,23 +148,31 @@ export function NewConversationDialog() {
 										disabled={startingId === person.userId}
 										className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-secondary/60 disabled:opacity-60"
 									>
-										<Avatar className="size-9">
-											{person.avatarUrl && (
-												<AvatarImage
-													src={person.avatarUrl}
-													alt={person.name}
-												/>
-											)}
-											<AvatarFallback>
-												{initials(person.name, person.email)}
-											</AvatarFallback>
-										</Avatar>
+										<span className="relative shrink-0">
+											<Avatar className="size-9">
+												{person.avatarUrl && (
+													<AvatarImage
+														src={person.avatarUrl}
+														alt={person.name}
+													/>
+												)}
+												<AvatarFallback>
+													{initials(person.name)}
+												</AvatarFallback>
+											</Avatar>
+											<span className="absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-background">
+												<PresenceDot userId={person.userId} />
+											</span>
+										</span>
 										<span className="min-w-0 flex-1">
 											<span className="block truncate text-sm font-medium">
 												{person.name}
 											</span>
 											<span className="block truncate text-xs text-muted-foreground">
-												{person.email}
+												{person.email ??
+													(person.accountType === "client"
+														? "Company"
+														: "Talent")}
 											</span>
 										</span>
 										{startingId === person.userId ? (

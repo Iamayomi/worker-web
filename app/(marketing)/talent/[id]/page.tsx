@@ -6,8 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Briefcase,
+  BriefcaseBusiness,
   FileText,
   Globe,
+  Laptop,
   Link2,
   LoaderCircle,
   MapPin,
@@ -21,7 +23,14 @@ import { useRecordAnalyticsEvent } from "@/lib/hooks/use-analytics";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCreateConversation } from "@/lib/hooks/use-chat";
+import { AccountType } from "@/types/api/auth";
 import { FollowButton } from "@/components/shared/follow-button";
+import { FollowStats } from "@/components/follows/follow-stats";
+import {
+  CertificationList,
+  EducationList,
+  WorkExperienceList,
+} from "@/components/profile/talent-entry-list";
 import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +71,7 @@ function InfoRow({
 export default function PublicTalentProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const createConversation = useCreateConversation();
   const [startingChat, setStartingChat] = useState(false);
   const { data: profile, isLoading, isError, error } = usePublicTalentProfile(
@@ -87,7 +96,7 @@ export default function PublicTalentProfilePage() {
     if (!profile) return;
     if (!isAuthenticated) {
       router.push(
-        `/login?redirect=${encodeURIComponent(`/talent/${profile.userId}`)}`
+        `/login?redirect=${encodeURIComponent(`/talent/${profile.id}`)}`
       );
       return;
     }
@@ -228,22 +237,27 @@ export default function PublicTalentProfilePage() {
                     {location}
                   </p>
                 )}
+                <div className="mt-3">
+                  <FollowStats userId={profile.userId} />
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <FollowButton targetUserId={profile.userId} showCount />
-              <Button
-                variant="outline"
-                onClick={startChat}
-                disabled={startingChat || authLoading}
-              >
-                {startingChat ? (
-                  <LoaderCircle className="h-4 w-4 animate-spin" />
-                ) : (
-                  <MessageCircle className="h-4 w-4" />
-                )}
-                Message
-              </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <FollowButton targetUserId={profile.userId} />
+              {user?.accountType === AccountType.CLIENT && (
+                <Button
+                  variant="outline"
+                  onClick={startChat}
+                  disabled={startingChat || authLoading}
+                >
+                  {startingChat ? (
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <MessageCircle className="h-4 w-4" />
+                  )}
+                  Message
+                </Button>
+              )}
               <Button variant="outline" onClick={share}>
                 <Share2 className="h-4 w-4" />
                 Share profile
@@ -276,10 +290,10 @@ export default function PublicTalentProfilePage() {
             <InfoRow icon={Briefcase} label="Experience">
               {yearsLabel ?? "Any level"}
             </InfoRow>
-            <InfoRow icon={Briefcase} label="Employment type">
+            <InfoRow icon={BriefcaseBusiness} label="Employment type">
               {employmentLabel(profile.employmentType) ?? "Any"}
             </InfoRow>
-            <InfoRow icon={Briefcase} label="Work preference">
+            <InfoRow icon={Laptop} label="Work preference">
               {preferenceLabel(profile.workPreference) ?? "Any"}
             </InfoRow>
             {profile.gender && (
@@ -294,6 +308,10 @@ export default function PublicTalentProfilePage() {
             )}
           </div>
         </div>
+
+        <WorkExperienceList talentProfileId={profile.id} />
+        <EducationList talentProfileId={profile.id} />
+        <CertificationList talentProfileId={profile.id} />
 
         <div className="rounded-2xl border border-border/15 bg-card p-6 shadow-sm sm:p-8">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">

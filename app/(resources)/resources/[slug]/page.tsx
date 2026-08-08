@@ -9,6 +9,7 @@ import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { Badge } from "@/components/ui/badge";
 import { AnimatedContent } from "@/components/shared/animated-content";
 import { ErrorAlert } from "@/components/shared/error-alert";
+import { ReportContentDialog } from "@/components/shared/report-content-dialog";
 
 function formatDate(value?: string) {
   if (!value) return "";
@@ -146,6 +147,13 @@ export default function PostDetailPage() {
                     {tag}
                   </Badge>
                 ))}
+                <span className="ml-auto">
+                  <ReportContentDialog
+                    targetType="post"
+                    targetId={post.id}
+                    label="Report"
+                  />
+                </span>
               </footer>
             )}
           </>

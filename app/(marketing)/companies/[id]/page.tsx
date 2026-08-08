@@ -8,6 +8,7 @@ import { useJobs } from "@/lib/hooks/use-jobs";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { JobCard } from "@/components/jobs/job-card";
 import { FollowButton } from "@/components/shared/follow-button";
+import { FollowStats } from "@/components/follows/follow-stats";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,13 +102,13 @@ export default function CompanyProfilePage() {
                     </span>
                   )}
                 </div>
+                <div className="mt-3">
+                  <FollowStats userId={profile.userId} />
+                </div>
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <FollowButton
-                targetUserId={profile.userId}
-                showCount
-              />
+              <FollowButton targetUserId={profile.userId} />
             </div>
           </div>
 

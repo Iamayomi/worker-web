@@ -44,7 +44,6 @@ import {
 
 type Job = {
   id?: string;
-  slug?: string;
   company: string;
   title: string;
   location: string;
@@ -98,7 +97,6 @@ function toLandingJob(job: ApiJob): Job {
 
   return {
     id: job.id,
-    slug: job.slug,
     company: job.companyName ?? "Company",
     title: job.title,
     location: job.location ? `${job.location} · ${preference}` : preference,
@@ -518,7 +516,7 @@ export default function LandingPage() {
                       </span>
                     )}
                     <Link
-                      href={job.slug ? `/jobs/${job.slug}` : "/jobs"}
+                      href={job.id ? `/jobs/${job.id}` : "/jobs"}
                       className="inline-flex h-10 items-center justify-center rounded-md border border-border px-5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
                     >
                       Apply

@@ -22,13 +22,14 @@ import {
   Users,
   Settings2,
   BadgeCheck,
+  UserRound,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DashboardHeaderSkeleton } from "@/components/shared/skeletons";
 import { AccountType, UserRole } from "@/types/api/auth";
 import { TalentHeader, UserMenu } from "@/components/layout/talent-header";
+import { NotificationBell } from "@/components/shared/notification-bell";
 import { useClientProfile } from "@/lib/hooks/use-profiles";
-import { useUnreadCount } from "@/lib/hooks/use-notifications";
 
 type NavLinkItem = { href: string; label: string; icon: LucideIcon };
 type NavSection = { title: string; links: NavLinkItem[] };
@@ -45,13 +46,18 @@ function NavLinks({
   const myRoles = (user?.roles ?? []) as UserRole[];
   const isAdmin =
     myRoles.includes(UserRole.SUPER_ADMIN) || myRoles.includes(UserRole.ADMIN);
-  const isClient = user?.accountType === AccountType.CLIENT;
+  const isClient = user?.accountType === AccountType.CLIENT && !isAdmin;
+  const isTalent = user?.accountType === AccountType.TALENT && !isAdmin;
 
   const sections: NavSection[] = [
     {
-      title: "Dashboard",
+      title: isTalent ? "Home" : "Dashboard",
       links: [
-        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        {
+          href: isTalent ? "/home" : "/dashboard",
+          label: isTalent ? "Home" : "Dashboard",
+          icon: LayoutDashboard,
+        },
       ],
     },
   ];
@@ -66,6 +72,12 @@ function NavLinks({
         { href: "/admin/content", label: "Content management", icon: Settings2 },
       ],
     });
+    sections.push({
+      title: "Notifications",
+      links: [
+        { href: "/admin/notifications", label: "Notifications", icon: Bell },
+      ],
+    });
   } else if (isClient) {
     sections.push({
       title: "Jobs",
@@ -77,13 +89,16 @@ function NavLinks({
   } else {
     sections.push({
       title: "Jobs",
-      links: [{ href: "/jobs", label: "Browse jobs", icon: Briefcase }],
+      links: [
+        { href: "/jobs", label: "Browse jobs", icon: Briefcase },
+        { href: "/applications", label: "My applications", icon: FileText },
+      ],
     });
   }
 
   sections.push({
     title: "Referral",
-    links: [{ href: "/dashboard/referral", label: "Referral", icon: Gift }],
+    links: [{ href: "/referral", label: "Referral", icon: Gift }],
   });
 
   if (isAdmin) {
@@ -101,6 +116,7 @@ function NavLinks({
       ...(isAdmin || isClient
         ? [{ href: "/invite", label: "Invite team", icon: UserPlus }]
         : []),
+      { href: "/profile", label: "Profile", icon: UserRound },
       { href: "/sessions", label: "Sessions", icon: ShieldAlert },
       { href: "/settings", label: "Settings", icon: Settings },
     ],
@@ -146,7 +162,7 @@ function NavLinks({
 function SidebarLogo({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <Link
-      href="/"
+      href="/dashboard"
       onClick={onNavigate}
       className="flex h-16 items-center gap-2 border-b border-border/15 px-6 hover:opacity-80"
     >
@@ -197,8 +213,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isTalent = user?.accountType === AccountType.TALENT && !isAdmin;
   const isClient = user?.accountType === AccountType.CLIENT && !isAdmin;
   const { data: clientProfile } = useClientProfile(isClient);
-  const { data: unread } = useUnreadCount();
-  const unreadCount = unread ?? 0;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !accessToken) {
@@ -283,18 +297,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href="/notifications"
-              aria-label="Notifications"
-              className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </Link>
+            <NotificationBell />
             <UserMenu />
           </div>
         </header>

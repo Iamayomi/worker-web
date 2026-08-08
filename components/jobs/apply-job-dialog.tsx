@@ -411,19 +411,19 @@ export function ApplyJobDialog({ job, open, onOpenChange }: ApplyJobDialogProps)
                   />
                   <span>
                     I agree to the{" "}
-                    <a
-                      href="#"
+                    <Link
+                      href="/terms"
                       className="font-medium text-primary underline-offset-4 hover:underline"
                     >
                       Terms of Service
-                    </a>{" "}
+                    </Link>{" "}
                     and{" "}
-                    <a
-                      href="#"
+                    <Link
+                      href="/privacy"
                       className="font-medium text-primary underline-offset-4 hover:underline"
                     >
                       Privacy Policy
-                    </a>
+                    </Link>
                     .
                   </span>
                 </label>
@@ -433,7 +433,7 @@ export function ApplyJobDialog({ job, open, onOpenChange }: ApplyJobDialogProps)
                     {error}
                     <Link
                       href={`/login?redirect=${encodeURIComponent(
-                        `/jobs/${job.slug}`
+                        `/jobs/${job.id}`
                       )}`}
                       className="mt-1 block font-medium text-destructive underline"
                     >

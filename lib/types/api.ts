@@ -17,6 +17,32 @@ export interface NotificationData {
   updatedAt: string;
 }
 
+export interface AdminNotificationItem extends NotificationData {
+  recipientEmail?: string;
+  recipientAccountType?: string;
+}
+
+export interface AdminNotificationStats {
+  total: number;
+  sent: number;
+  delivered: number;
+  failed: number;
+  pending: number;
+  read: number;
+  unread: number;
+}
+
+export interface AdminSendNotificationInput {
+  category: string;
+  title: string;
+  message: string;
+  type?: string;
+  link?: string;
+  userIds?: string[];
+  accountType?: string;
+  all?: boolean;
+}
+
 export interface ChannelPreferences {
   inApp: boolean;
   email: boolean;

@@ -4,6 +4,9 @@ export const queryKeys = {
     list: () => ["notifications", "list"] as const,
     unreadCount: () => ["notifications", "unread-count"] as const,
     preferences: () => ["notifications", "preferences"] as const,
+    adminList: (params: object) =>
+      ["notifications", "admin", "list", params] as const,
+    adminStats: () => ["notifications", "admin", "stats"] as const,
   },
   sessions: {
     all: ["sessions"] as const,
@@ -44,6 +47,15 @@ export const queryKeys = {
   profiles: {
     clientMe: () => ["profiles", "client", "me"] as const,
     talentMe: () => ["profiles", "talent", "me"] as const,
+    experiences: () => ["profiles", "talent", "experiences"] as const,
+    education: () => ["profiles", "talent", "education"] as const,
+    certifications: () => ["profiles", "talent", "certifications"] as const,
+    publicExperiences: (talentProfileId: string) =>
+      ["profiles", "talent", "experiences", "public", talentProfileId] as const,
+    publicEducation: (talentProfileId: string) =>
+      ["profiles", "talent", "education", "public", talentProfileId] as const,
+    publicCertifications: (talentProfileId: string) =>
+      ["profiles", "talent", "certifications", "public", talentProfileId] as const,
   },
   content: {
     all: () => ["content", "posts"] as const,
@@ -56,6 +68,7 @@ export const queryKeys = {
     all: () => ["content", "pages"] as const,
     bySlug: (slug: string) => ["content", "pages", slug] as const,
     adminList: () => ["content", "pages", "admin"] as const,
+    list: (params: object) => ["content", "pages", "list", params] as const,
   },
   chat: {
     all: ["chat"] as const,

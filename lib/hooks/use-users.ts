@@ -373,3 +373,19 @@ export function useUploadAvatar() {
     },
   });
 }
+
+export function useUploadDocument() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "documents");
+      const res = await worker.auth.upload<{ jobId: string; message: string }>(
+        "/upload/document",
+        formData
+      );
+      if (!res.success) throw new Error(res.message || "Upload failed");
+      return res.data;
+    },
+  });
+}
