@@ -41,7 +41,6 @@ export interface Job {
   clientProfileId: string;
   companyName?: string;
   title: string;
-  slug: string;
   description: string;
   category?: string;
   employmentType: EmploymentType;

@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { worker } from "@/lib/api/worker";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useUploadAvatar } from "@/lib/hooks/use-users";
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
@@ -14,12 +13,29 @@ import {
   useUpdateAnalyticsPreferences,
 } from "@/lib/hooks/use-analytics";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Camera, ChevronRight, Shield, Key, Bell, Ban, Mail } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Key,
+  Shield,
+  Ban,
+  Bell,
+  Mail,
+  ChevronRight,
+  UserRound,
+  LoaderCircle,
+} from "lucide-react";
 import { AnimatedContent } from "@/components/shared/animated-content";
+import { PageHeader } from "@/components/shared/page-header";
+import { AccountType, UserRole } from "@/types/api/auth";
 import type {
   ChannelPreferences,
   NotificationPreferenceCategory,
@@ -58,14 +74,20 @@ const CATEGORY_LABELS: Record<
   },
 };
 
+function StatusBanner({ kind, children }: { kind: "error" | "success"; children: React.ReactNode }) {
+  const styles =
+    kind === "error"
+      ? "border-destructive/20 bg-destructive/10 text-destructive"
+      : "border-green-500/20 bg-green-500/10 text-green-600";
+  return (
+    <div className={`rounded-lg border px-4 py-2 text-sm ${styles}`}>
+      {children}
+    </div>
+  );
+}
+
 export default function SettingsPage() {
-  const { user, refreshUser } = useAuth();
-  const uploadAvatar = useUploadAvatar();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [avatarMsg, setAvatarMsg] = useState("");
-  const [avatarError, setAvatarError] = useState("");
+  const { user } = useAuth();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -127,45 +149,6 @@ export default function SettingsPage() {
 
   const hasPassword = user?.hasPassword ?? false;
 
-  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "";
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setAvatarError("Please choose an image file");
-      setAvatarFile(null);
-      setAvatarPreview(null);
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError("Image must be 5MB or smaller");
-      setAvatarFile(null);
-      setAvatarPreview(null);
-      return;
-    }
-    setAvatarError("");
-    setAvatarMsg("");
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  }
-
-  async function handleUploadAvatar() {
-    if (!avatarFile) return;
-    setAvatarError("");
-    setAvatarMsg("");
-    await uploadAvatar.mutateAsync(avatarFile, {
-      onSuccess: (res) => {
-        setAvatarFile(null);
-        setAvatarPreview(null);
-        setAvatarMsg(res?.message ?? "Avatar upload queued for processing");
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        setTimeout(() => void refreshUser(), 2000);
-        setTimeout(() => void refreshUser(), 6000);
-      },
-    });
-  }
-
   async function handleChangePassword(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -197,250 +180,235 @@ export default function SettingsPage() {
     setLoading(false);
   }
 
-  const sections = [
-    {
-      title: "Account",
-      items: [
-        { icon: Shield, label: "Sessions", desc: "Manage active sessions", href: "/sessions" },
-        { icon: Ban, label: "Blocked users", desc: "Manage users you've blocked", href: "/settings/blocked" },
-      ],
-    },
-  ];
+  const myRoles = ((user?.roles ?? []) as UserRole[]);
+  const isAdmin =
+    myRoles.includes(UserRole.ADMIN) || myRoles.includes(UserRole.SUPER_ADMIN);
+  const isClient = user?.accountType === AccountType.CLIENT && !isAdmin;
+  const profileHref = "/profile";
 
   return (
     <AnimatedContent>
-    <div className="mx-auto max-w-2xl space-y-8">
-      <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+      <div className="mx-auto max-w-5xl space-y-6">
+        <PageHeader
+          title="Settings"
+          description="Manage your account, security and notification preferences."
+        />
 
-      <div>
-        <h2 className="mb-3 text-lg font-semibold">Profile picture</h2>
-        <div className="rounded-lg border border-border/15 p-5">
-          <div className="flex items-center gap-4">
-            <Avatar className="size-16">
-              {avatarPreview ? (
-                <AvatarImage
-                  src={avatarPreview}
-                  alt="Avatar preview"
-                  className="size-full object-cover"
-                />
-              ) : user?.avatarUrl ? (
-                <AvatarImage
-                  src={user.avatarUrl}
-                  alt="Profile picture"
-                  className="size-full object-cover"
-                />
-              ) : null}
-              <AvatarFallback className="text-lg font-semibold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={handleFileChange}
-                className="block w-full max-w-sm text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary"
-              />
-              <p className="text-xs text-muted-foreground">
-                JPEG, PNG, GIF or WEBP — up to 5MB
+        <div className="grid gap-6 lg:grid-cols-3">
+          <aside className="lg:col-span-1">
+            <div className="space-y-1 rounded-xl border border-border/15 p-2">
+              <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Account
               </p>
-            </div>
-          </div>
-
-          {avatarError && (
-            <div className="mt-3 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-              {avatarError}
-            </div>
-          )}
-          {avatarMsg && (
-            <div className="mt-3 rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-2 text-sm text-green-600">
-              {avatarMsg}
-            </div>
-          )}
-          {uploadAvatar.isError && (
-            <div className="mt-3 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-              {uploadAvatar.error instanceof Error
-                ? uploadAvatar.error.message
-                : "Upload failed"}
-            </div>
-          )}
-
-          {avatarPreview && (
-            <Button
-              type="button"
-              className="mt-4"
-              disabled={uploadAvatar.isPending}
-              onClick={handleUploadAvatar}
-            >
-              <Camera className="h-4 w-4" />
-              {uploadAvatar.isPending ? "Uploading..." : "Upload picture"}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {sections.map((section) => (
-        <div key={section.title}>
-          <h2 className="mb-3 text-lg font-semibold">{section.title}</h2>
-          <div className="space-y-1 rounded-lg border border-border/15">
-            {section.items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-secondary/50 first:rounded-t-lg last:rounded-b-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2">
+              {[
+                {
+                  href: profileHref,
+                  label: isClient ? "Company profile" : "Profile",
+                  desc: "Your public details",
+                  icon: UserRound,
+                },
+                {
+                  href: "/sessions",
+                  label: "Sessions",
+                  desc: "Manage active sessions",
+                  icon: Shield,
+                },
+                {
+                  href: "/settings/blocked",
+                  label: "Blocked users",
+                  desc: "People you've blocked",
+                  icon: Ban,
+                },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-secondary/60"
+                >
+                  <div className="rounded-lg bg-primary/10 p-1.5">
                     <item.icon className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {item.desc}
+                    </p>
                   </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </Link>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      <div>
-        <h2 className="mb-3 text-lg font-semibold">Security</h2>
-        <div className="rounded-lg border border-border/15 p-5">
-          {!hasPassword && (
-            <p className="mb-4 text-sm text-muted-foreground">
-              Your account was created with Google. Set a password to also sign
-              in with your email and password.
-            </p>
-          )}
-          <form onSubmit={handleChangePassword} className="space-y-4">
-            {error && (
-              <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
-            )}
-            {success && (
-              <div className="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-2 text-sm text-green-600">{success}</div>
-            )}
-
-            {hasPassword && (
-              <div className="space-y-1.5">
-                <Label htmlFor="currentPassword">Current password</Label>
-                <Input id="currentPassword" type="password" value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)} />
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <Label htmlFor="newPassword">New password</Label>
-              <Input id="newPassword" type="password" value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)} minLength={8} />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              ))}
             </div>
+          </aside>
 
-            <Button type="submit" disabled={loading}>
-              <Key className="h-4 w-4" />{" "}
-              {loading
-                ? "Saving..."
-                : hasPassword
-                  ? "Change password"
-                  : "Set password"}
-            </Button>
-          </form>
-        </div>
-      </div>
+          <div className="space-y-6 lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Key className="h-4 w-4 text-primary" />
+                  Security
+                </CardTitle>
+                <CardDescription>
+                  {hasPassword
+                    ? "Update the password used to sign in to your account."
+                    : "Your account was created with Google. Set a password to also sign in with your email and password."}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  {error && <StatusBanner kind="error">{error}</StatusBanner>}
+                  {success && <StatusBanner kind="success">{success}</StatusBanner>}
 
-      <div>
-        <h2 className="mb-3 text-lg font-semibold">Notifications</h2>
-        <div className="rounded-lg border border-border/15 p-5">
-          {(prefsError || prefsQuery.isError) && (
-            <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-              {prefsError ||
-                (prefsQuery.error instanceof Error
-                  ? prefsQuery.error.message
-                  : "Failed to load notification preferences")}
-            </div>
-          )}
-          {prefsSaved && (
-            <div className="mb-4 rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-2 text-sm text-green-600">
-              {prefsSaved}
-            </div>
-          )}
-
-          {prefsQuery.isLoading && !prefs ? (
-            <p className="text-sm text-muted-foreground">
-              Loading notification preferences...
-            </p>
-          ) : prefs ? (
-            <div className="space-y-4">
-              {(Object.keys(CATEGORY_LABELS) as NotificationPreferenceCategory[]).map(
-                (category) => (
-                  <div key={category}>
-                    <p className="text-sm font-medium">
-                      {CATEGORY_LABELS[category].label}
-                    </p>
-                    <p className="mb-2 text-xs text-muted-foreground">
-                      {CATEGORY_LABELS[category].desc}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                      {CHANNELS.map((channel) => (
-                        <label
-                          key={channel.key}
-                          className="flex cursor-pointer items-center gap-2"
-                        >
-                          <Switch
-                            checked={prefs[category][channel.key]}
-                            onCheckedChange={() =>
-                              handleToggle(category, channel.key)
-                            }
-                          />
-                          <span className="text-sm">{channel.label}</span>
-                        </label>
-                      ))}
+                  {hasPassword && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="currentPassword">Current password</Label>
+                      <Input
+                        id="currentPassword"
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                      />
                     </div>
+                  )}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="newPassword">New password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      minLength={8}
+                    />
                   </div>
-                )
-              )}
 
-              <Button
-                type="button"
-                className="mt-2"
-                disabled={updatePrefs.isPending}
-                onClick={handleSavePreferences}
-              >
-                <Bell className="h-4 w-4" />{" "}
-                {updatePrefs.isPending ? "Saving..." : "Save preferences"}
-              </Button>
-            </div>
-          ) : null}
-        </div>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? (
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Key className="h-4 w-4" />
+                    )}
+                    {loading
+                      ? "Saving..."
+                      : hasPassword
+                        ? "Change password"
+                        : "Set password"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
 
-        <div className="mt-4 rounded-lg border border-border/15 p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <Mail className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-primary" />
+                  Notification preferences
+                </CardTitle>
+                <CardDescription>
+                  Choose which channels you receive updates on for each category.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {(prefsError || prefsQuery.isError) && (
+                  <div className="mb-4">
+                    <StatusBanner kind="error">
+                      {prefsError ||
+                        (prefsQuery.error instanceof Error
+                          ? prefsQuery.error.message
+                          : "Failed to load notification preferences")}
+                    </StatusBanner>
+                  </div>
+                )}
+                {prefsSaved && (
+                  <div className="mb-4">
+                    <StatusBanner kind="success">{prefsSaved}</StatusBanner>
+                  </div>
+                )}
+
+                {prefsQuery.isLoading && !prefs ? (
+                  <p className="text-sm text-muted-foreground">
+                    Loading notification preferences...
+                  </p>
+                ) : prefs ? (
+                  <div className="space-y-6">
+                    {(Object.keys(CATEGORY_LABELS) as NotificationPreferenceCategory[]).map(
+                      (category) => (
+                        <div
+                          key={category}
+                          className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-border/10 p-4"
+                        >
+                          <div>
+                            <p className="text-sm font-medium">
+                              {CATEGORY_LABELS[category].label}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {CATEGORY_LABELS[category].desc}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            {CHANNELS.map((channel) => (
+                              <label
+                                key={channel.key}
+                                className="flex cursor-pointer flex-col items-center gap-1"
+                              >
+                                <Switch
+                                  checked={prefs[category][channel.key]}
+                                  onCheckedChange={() =>
+                                    handleToggle(category, channel.key)
+                                  }
+                                />
+                                <span className="text-xs">{channel.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    )}
+
+                    <Button
+                      type="button"
+                      disabled={updatePrefs.isPending}
+                      onClick={handleSavePreferences}
+                    >
+                      {updatePrefs.isPending ? (
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Bell className="h-4 w-4" />
+                      )}
+                      {updatePrefs.isPending ? "Saving..." : "Save preferences"}
+                    </Button>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" />
                   Weekly analytics summary
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
+                </CardTitle>
+                <CardDescription>
                   A digest of your key metrics is emailed to you every Monday
                   morning. You can change this anytime.
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={weeklyEmailOptIn}
-              disabled={
-                analyticsPrefsQuery.isLoading || updateAnalyticsPrefs.isPending
-              }
-              onCheckedChange={(value) => updateAnalyticsPrefs.mutate(value)}
-            />
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    Receive a weekly email summary of your account activity.
+                  </p>
+                  <Switch
+                    checked={weeklyEmailOptIn}
+                    disabled={
+                      analyticsPrefsQuery.isLoading || updateAnalyticsPrefs.isPending
+                    }
+                    onCheckedChange={(value) => updateAnalyticsPrefs.mutate(value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
-    </div>
     </AnimatedContent>
   );
 }
-

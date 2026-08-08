@@ -19,13 +19,6 @@ export const EMPLOYMENT_TYPES = [
   { value: "internship", label: "Internship" },
 ] as const;
 
-export const AVAILABILITY_OPTIONS = [
-  { value: "immediately", label: "Immediately" },
-  { value: "2-weeks", label: "2 weeks" },
-  { value: "1-month", label: "1 month" },
-  { value: "not-available", label: "Not available" },
-] as const;
-
 export const CURRENCIES = [
   { value: "usd", label: "USD" },
   { value: "eur", label: "EUR" },
@@ -71,19 +64,6 @@ export const APPLICATION_STATUSES = [
   { value: ApplicationStatus.ACCEPTED, label: "Accepted" },
   { value: ApplicationStatus.REJECTED, label: "Rejected" },
   { value: ApplicationStatus.WITHDRAWN, label: "Withdrawn" },
-] as const;
-
-export const COMPANY_SIZES = [
-  { value: "1-10", label: "1-10" },
-  { value: "11-50", label: "11-50" },
-  { value: "51-200", label: "51-200" },
-  { value: "201-500", label: "201-500" },
-  { value: "500+", label: "500+" },
-] as const;
-
-export const CLIENT_ROLES = [
-  { value: "CLIENT_ADMIN", label: "Admin" },
-  { value: "CLIENT_OWNER", label: "Owner" },
 ] as const;
 
 export const ROLE_LABELS: Record<UserRole, string> = {

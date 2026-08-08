@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Briefcase,
   FileText,
@@ -28,8 +29,8 @@ import type { JobListData } from "@/types/api/jobs";
 import type { PostListData } from "@/types/api/posts";
 import type { SearchPeopleItem } from "@/lib/types/chat";
 
-function initials(name?: string, email?: string): string {
-  const source = name || email || "?";
+function initials(name?: string): string {
+  const source = name || "?";
   return source
     .split(" ")
     .map((part) => part[0])
@@ -44,7 +45,7 @@ interface SearchResults {
   people: SearchPeopleItem[];
 }
 
-export function GlobalSearch() {
+export function GlobalSearch({ className }: { className?: string }) {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const createConversation = useCreateConversation();
@@ -144,7 +145,10 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden h-9 w-56 items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 text-sm text-muted-foreground transition-colors hover:border-ring/60 hover:bg-secondary/70 md:inline-flex"
+        className={cn(
+          "hidden h-9 w-56 items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 text-sm text-muted-foreground transition-colors hover:border-ring/60 hover:bg-secondary/70 md:inline-flex",
+          className
+        )}
       >
         <Search className="h-4 w-4 shrink-0" />
         <span className="truncate">Search jobs, people, resources...</span>
@@ -189,7 +193,7 @@ export function GlobalSearch() {
                   <CommandItem
                     key={job.id}
                     value={`job:${job.id}`}
-                    onSelect={() => go(`/jobs/${job.slug}`)}
+                    onSelect={() => go(`/jobs/${job.id}`)}
                   >
                     <Briefcase className="size-4 text-muted-foreground" />
                     <span className="min-w-0 flex-1">
@@ -218,13 +222,13 @@ export function GlobalSearch() {
                         <AvatarImage src={person.avatarUrl} alt={person.name} />
                       )}
                       <AvatarFallback className="text-[10px]">
-                        {initials(person.name, person.email)}
+                        {initials(person.name)}
                       </AvatarFallback>
                     </Avatar>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate">{person.name}</span>
                       <span className="block truncate text-xs text-muted-foreground">
-                        {person.email}
+                        {person.accountType === "client" ? "Company" : "Talent"}
                       </span>
                     </span>
                   </CommandItem>

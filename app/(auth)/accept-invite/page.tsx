@@ -4,17 +4,19 @@ import { useState, use, type FormEvent } from "react";
 import { worker } from "@/lib/api/worker";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
-export default function AcceptInvitePage(props: { searchParams: Promise<{ token?: string }> }) {
+export default function AcceptInvitePage(props: {
+  searchParams: Promise<{ token?: string; email?: string }>;
+}) {
   usePageTitle("Accept Invite");
   const searchParams = use(props.searchParams);
   const router = useRouter();
+  const [email, setEmail] = useState(searchParams.email ?? "");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
@@ -31,6 +33,11 @@ export default function AcceptInvitePage(props: { searchParams: Promise<{ token?
       return;
     }
 
+    if (!email.trim()) {
+      setError("Please enter the email address that was invited");
+      return;
+    }
+
     if (!termsAccepted) {
       setError("You must accept the Terms & Conditions and Privacy Policy");
       return;
@@ -39,6 +46,7 @@ export default function AcceptInvitePage(props: { searchParams: Promise<{ token?
     setLoading(true);
     const res = await worker.post("/auth/accept-invite", {
       token: searchParams.token,
+      email: email.trim(),
       first_name: firstName,
       last_name: lastName,
       password,
@@ -68,6 +76,21 @@ export default function AcceptInvitePage(props: { searchParams: Promise<{ token?
               {error}
             </div>
           )}
+
+          <div className="space-y-1.5">
+            <Label htmlFor="invite-email">
+              Email address<span className="text-foreground"> *</span>
+            </Label>
+            <Input
+              id="invite-email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="The email address that was invited"
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">

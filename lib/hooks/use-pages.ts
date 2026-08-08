@@ -34,6 +34,22 @@ export function useAdminPages() {
   });
 }
 
+export function usePublicPages(params: { page?: number; limit?: number } = {}) {
+  const page = params.page ?? 1;
+  const limit = params.limit ?? 50;
+
+  return useQuery({
+    queryKey: queryKeys.pages.list({ page, limit }),
+    queryFn: async () => {
+      const res = await worker.get<PageListData>(
+        `/content/pages?page=${page}&limit=${limit}`
+      );
+      if (!res.success) throw new Error(res.message || "Failed to load pages");
+      return res.data!;
+    },
+  });
+}
+
 export function useCreatePage() {
   const queryClient = useQueryClient();
   return useMutation({

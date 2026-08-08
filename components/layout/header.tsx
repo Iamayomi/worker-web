@@ -7,8 +7,9 @@ import { Bookmark, ChevronDown, LogOut, LayoutDashboard, Settings } from "lucide
 import { cn, getDashboardRoute } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
 import { useLogout } from "@/hooks/api/useAuth";
+import { useTalentProfile, useClientProfile } from "@/lib/hooks/use-profiles";
 import { ROLE_LABELS } from "@/lib/constants/enums";
-import { UserRole } from "@/types/api/auth";
+import { AccountType, UserRole } from "@/types/api/auth";
 import { GlobalSearch } from "@/components/layout/global-search";
 import {
   DropdownMenu,
@@ -19,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/shared/notification-bell";
 
 const countries = [
   { code: "US", name: "United States", flag: "🇺🇸", lang: "English", langCode: "en" },
@@ -145,19 +147,19 @@ const navItems: NavItem[] = [
       {
         title: "By field",
         links: [
-          { label: "Engineering", href: "/jobs" },
-          { label: "Design", href: "/jobs" },
-          { label: "Sales", href: "/jobs" },
-          { label: "Marketing", href: "/jobs" },
-          { label: "Finance", href: "/jobs" },
+          { label: "Engineering", href: "/jobs?category=Engineering" },
+          { label: "Design", href: "/jobs?category=Design" },
+          { label: "Sales", href: "/jobs?category=Sales" },
+          { label: "Marketing", href: "/jobs?category=Marketing" },
+          { label: "Finance", href: "/jobs?category=Finance" },
         ],
       },
       {
         title: "By type",
         links: [
-          { label: "Full-time", href: "/jobs" },
-          { label: "Contract", href: "/jobs" },
-          { label: "Remote", href: "/jobs" },
+          { label: "Full-time", href: "/jobs?employmentType=full-time" },
+          { label: "Contract", href: "/jobs?employmentType=contract" },
+          { label: "Remote", href: "/jobs?workPreference=remote" },
         ],
       },
     ],
@@ -171,17 +173,13 @@ const navItems: NavItem[] = [
     columns: [
       {
         title: "For companies",
-        links: [
-          { label: "Search talent", href: "/talent" },
-          { label: "Browse candidates", href: "/talent" },
-          { label: "Recommended matches", href: "/talent" },
-        ],
+        links: [{ label: "Search talent", href: "/talent" }],
       },
       {
         title: "For talent",
         links: [
+          { label: "Browse jobs", href: "/jobs" },
           { label: "Create profile", href: "/register/talent" },
-          { label: "Get matched", href: "/talent" },
           { label: "Career advice", href: "/resources?category=Career+advice" },
         ],
       },
@@ -195,12 +193,7 @@ const navItems: NavItem[] = [
     columns: [
       {
         title: "Connect",
-        links: [
-          { label: "Forums", href: "/community" },
-          { label: "Events", href: "/community" },
-          { label: "Mentorship", href: "/community" },
-          { label: "Partnerships", href: "/community" },
-        ],
+        links: [{ label: "Community", href: "/community" }],
       },
     ],
     cta: { label: "Join the community", href: "/community" },
@@ -228,14 +221,32 @@ function UserMenu() {
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
   const router = useRouter();
+  const roles = ((user?.roles ?? []) as UserRole[]);
+  const isAdmin =
+    roles.includes(UserRole.ADMIN) || roles.includes(UserRole.SUPER_ADMIN);
+  const isClient = user?.accountType === AccountType.CLIENT && !isAdmin;
+  const isTalent = user?.accountType === AccountType.TALENT && !isAdmin;
+  const { data: talentProfile } = useTalentProfile(Boolean(user) && isTalent);
+  const { data: clientProfile } = useClientProfile(isClient);
 
-  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "";
-  const roles = ((user?.roles ?? []) as UserRole[]).filter(
-    (role) => role !== UserRole.USER
-  );
+  const fullName = talentProfile
+    ? [talentProfile.firstName, talentProfile.lastName]
+        .filter(Boolean)
+        .join(" ")
+    : clientProfile
+      ? [clientProfile.contactFirstName, clientProfile.contactLastName]
+          .filter(Boolean)
+          .join(" ")
+      : "";
+  const derivedName = user?.email.split("@")[0].replace(/[._-]/g, " ").trim() ?? "";
+  const displayName = fullName || derivedName || user?.email || "";
+  const initials = displayName.slice(0, 2).toUpperCase();
   const roleLabel =
     roles.length > 0
-      ? roles.map((role) => ROLE_LABELS[role] ?? role).join(", ")
+      ? roles
+          .filter((role) => role !== UserRole.USER)
+          .map((role) => ROLE_LABELS[role] ?? role)
+          .join(", ")
       : user?.accountType ?? "";
 
   return (
@@ -251,14 +262,17 @@ function UserMenu() {
             </AvatarFallback>
           </Avatar>
           <span className="hidden max-w-32 truncate text-sm font-medium sm:block">
-            {user?.email}
+            {displayName}
           </span>
           <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground sm:block" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
-          <p className="truncate capitalize">{roleLabel}</p>
+          <p className="truncate font-medium">{displayName}</p>
+          <p className="truncate text-[11px] font-normal capitalize text-muted-foreground">
+            {roleLabel}
+          </p>
           <p className="truncate text-xs font-normal text-muted-foreground">
             {user?.email}
           </p>
@@ -269,7 +283,7 @@ function UserMenu() {
           className="cursor-pointer"
         >
           <LayoutDashboard />
-          Dashboard
+          {isTalent ? "Home" : "Dashboard"}
         </DropdownMenuItem>
         <DropdownMenuItem
           onSelect={() => router.push("/saved-jobs")}
@@ -307,14 +321,14 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
       <div className="flex h-16 items-center justify-between px-5 sm:px-8">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-16">
           <Link
             href={user ? getDashboardRoute(user) : "/"}
             className="text-xl font-bold tracking-tight"
           >
             Worker
           </Link>
-          <GlobalSearch />
+          <GlobalSearch className="h-10 w-80" />
         </div>
         <nav className="hidden items-center md:flex">
           {navItems.map((item) => (
@@ -334,7 +348,10 @@ export function Header() {
         <div className="hidden items-center gap-4 md:flex">
           <CountrySelect />
           {user ? (
-            <UserMenu />
+            <>
+              <NotificationBell />
+              <UserMenu />
+            </>
           ) : (
             <>
               <Link href="/login" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -352,7 +369,10 @@ export function Header() {
         <div className="flex items-center gap-3 md:hidden">
           <CountrySelect />
           {user ? (
-            <UserMenu />
+            <>
+              <NotificationBell />
+              <UserMenu />
+            </>
           ) : (
             <Link
               href="/register"

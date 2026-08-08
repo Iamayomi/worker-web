@@ -17,7 +17,6 @@ import { AccountType, UserRole } from "@/types/api/auth";
 import { ApplicationStatus } from "@/types/api/jobs";
 import { AnimatedContent } from "@/components/shared/animated-content";
 import { PageHeader } from "@/components/shared/page-header";
-import { ApplicationsSubNav } from "@/components/applications/applications-sub-nav";
 import { AdminApplicationStats } from "@/components/applications/admin-application-stats";
 import { ExportCsvButton } from "@/components/shared/export-csv-button";
 import { Badge } from "@/components/ui/badge";
@@ -45,7 +44,6 @@ import {
   Eye,
   FileText,
   MoreVertical,
-  Pencil,
   Trash2,
 } from "lucide-react";
 
@@ -167,8 +165,6 @@ export default function ManageApplicationsPage() {
         }
       />
 
-      <ApplicationsSubNav />
-
       <AdminApplicationStats stats={data?.stats} />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -264,7 +260,7 @@ export default function ManageApplicationsPage() {
                   </td>
                   <td className="max-w-[220px] px-4 py-3">
                     <Link
-                      href={app.jobSlug ? `/jobs/${app.jobSlug}` : `/jobs/manage/${app.jobId}`}
+                      href={`/jobs/manage/${app.jobId}`}
                       className="truncate font-medium hover:text-primary"
                     >
                       {app.jobTitle}
@@ -316,11 +312,6 @@ export default function ManageApplicationsPage() {
                         <DropdownMenuItem asChild>
                           <Link href={`/applications/${app.id}`}>
                             <Eye className="h-4 w-4" /> View
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/applications/${app.id}`}>
-                            <Pencil className="h-4 w-4" /> Edit
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />

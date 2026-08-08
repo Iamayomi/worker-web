@@ -45,6 +45,7 @@ import {
   SKILL_OPTIONS,
   YEARS_OF_EXPERIENCE_OPTIONS,
 } from "@/lib/constants/options";
+import { getDashboardRoute } from "@/lib/utils";
 
 const GOOGLE_PROFILE_KEY = "worker_google_profile";
 
@@ -99,6 +100,9 @@ function CompleteProfile() {
 
   const type =
     searchParams.get("type") === AccountType.CLIENT ? "client" : "talent";
+
+  const accountType =
+    type === "client" ? AccountType.CLIENT : AccountType.TALENT;
 
   const [googleProfile, setGoogleProfile] = useState<{
     firstName: string;
@@ -177,7 +181,7 @@ function CompleteProfile() {
                     toast.success(
                       response.message || "Client profile completed"
                     );
-                    router.push("/");
+                    router.push(getDashboardRoute({ accountType, roles: [] }));
                   },
                   onError: (error) =>
                     toast.error(
@@ -211,7 +215,7 @@ function CompleteProfile() {
                     toast.success(
                       response.message || "Talent profile completed"
                     );
-                    router.push("/");
+                    router.push(getDashboardRoute({ accountType, roles: [] }));
                   },
                   onError: (error) =>
                     toast.error(
@@ -228,7 +232,10 @@ function CompleteProfile() {
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already done?{" "}
-          <Link href="/" className="font-medium text-primary hover:underline">
+          <Link
+            href={getDashboardRoute({ accountType, roles: [] })}
+            className="font-medium text-primary hover:underline"
+          >
             Go to dashboard
           </Link>
         </p>

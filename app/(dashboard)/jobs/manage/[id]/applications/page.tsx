@@ -106,7 +106,7 @@ export default function JobApplicationsPage() {
       <PageHeader
         title={job ? job.title : "Applicants"}
         description="Review and manage applications for this job."
-        backHref={job ? `/jobs/${job.slug}` : "/jobs/mine"}
+        backHref={job ? `/jobs/${job.id}` : "/jobs/mine"}
       />
 
       <div className="flex flex-wrap gap-1.5">
@@ -152,25 +152,25 @@ export default function JobApplicationsPage() {
             return (
               <div
                 key={application.id}
-                className="rounded-lg border border-border/15 p-4"
+                className="group rounded-lg border border-border/15 p-4 transition-colors hover:border-border/30"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <Link
-                      href={`/applications/${application.id}`}
-                      className="text-sm font-medium hover:underline"
-                    >
+                  <Link
+                    href={`/applications/${application.id}`}
+                    className="min-w-0"
+                  >
+                    <span className="block text-sm font-medium transition-colors group-hover:text-primary group-hover:underline">
                       {name}
-                    </Link>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                    </span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
                       {application.talent?.professionalTitle ??
                         application.applicantEmail ??
                         "No title"}{" "}
                       · Applied{" "}
                       {new Date(application.createdAt).toLocaleDateString()}
-                    </p>
+                    </span>
                     {application.talent?.skills && application.talent.skills.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
+                      <span className="mt-2 flex flex-wrap gap-1">
                         {application.talent.skills.slice(0, 5).map((skill) => (
                           <span
                             key={skill}
@@ -179,9 +179,9 @@ export default function JobApplicationsPage() {
                             {skill}
                           </span>
                         ))}
-                      </div>
+                      </span>
                     )}
-                  </div>
+                  </Link>
                   <div className="flex shrink-0 items-center gap-2">
                     <Badge className={APPLICATION_STATUS[application.status] ?? undefined}>
                       {STATUS_LABEL[application.status] ?? application.status}

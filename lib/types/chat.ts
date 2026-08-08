@@ -4,6 +4,7 @@ export interface ChatParticipant {
   accountType?: string;
   name?: string;
   avatarUrl?: string;
+  isOnline?: boolean;
 }
 
 export interface ChatMessage {
@@ -90,10 +91,11 @@ export interface CreateConversationInput {
 
 export interface SearchPeopleItem {
   userId: string;
-  email: string;
   name: string;
+  email?: string;
   avatarUrl?: string;
   accountType: string;
+  isOnline?: boolean;
 }
 
 export interface SearchPeopleData {

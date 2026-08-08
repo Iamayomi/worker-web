@@ -29,12 +29,7 @@ export function AdminApplicationStats({ stats }: AdminApplicationStatsProps) {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <StatCard
-        label="Total applications"
-        value={stats.total}
-        icon={Users}
-        href="/applications/manage"
-      />
+      <StatCard label="Total applications" value={stats.total} icon={Users} />
       <StatCard label="Active pipeline" value={active} icon={UserCheck} />
       <StatCard label="Offers & accepted" value={success} icon={FileCheck2} />
       <StatCard label="Rejected" value={countFor("rejected")} icon={UserX} />

@@ -119,6 +119,22 @@ export function usePublicTalentProfile(id: string) {
   });
 }
 
+export function useTalentProfileByUserId(userId: string, enabled = true) {
+  return useQuery({
+    queryKey: ["talent-profiles", "by-user", userId],
+    enabled: Boolean(userId) && enabled,
+    retry: false,
+    queryFn: async () => {
+      const res = await worker.auth.get<TalentProfileData>(
+        `/talent-profiles/user/${userId}`
+      );
+      if (!res.success)
+        throw new Error(res.message || "Profile not found");
+      return res.data!;
+    },
+  });
+}
+
 export function usePublicClientProfile(id: string) {
   return useQuery({
     queryKey: ["client-profiles", "public", id],

@@ -33,7 +33,7 @@ export function formatDate(value?: string): string {
 export function JobCard({ job }: { job: Job }) {
   return (
     <Link
-      href={`/jobs/${job.slug}`}
+      href={`/jobs/${job.id}`}
       className="block rounded-xl border border-border/15 bg-card p-5 transition-colors hover:border-primary/40 hover:shadow-sm"
     >
       <div className="flex items-start justify-between gap-3">

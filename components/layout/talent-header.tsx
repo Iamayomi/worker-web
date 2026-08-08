@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Bell,
   Bookmark,
   Building2,
   ChevronDown,
@@ -18,13 +17,13 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useTalentProfile } from "@/lib/hooks/use-profiles";
-import { useUnreadCount } from "@/lib/hooks/use-notifications";
+import { useTalentProfile, useClientProfile } from "@/lib/hooks/use-profiles";
 import { useTheme } from "next-themes";
 import { AccountType, UserRole } from "@/types/api/auth";
 import { ROLE_LABELS } from "@/lib/constants/enums";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GlobalSearch } from "@/components/layout/global-search";
+import { NotificationBell } from "@/components/shared/notification-bell";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -38,24 +37,34 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
   const { user, logout } = useAuth();
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
-  const { data: talentProfile } = useTalentProfile(showAccountLinks);
+  const accountType = user?.accountType;
+  const roles = ((user?.roles ?? []) as UserRole[]);
+  const isAdmin =
+    roles.includes(UserRole.ADMIN) || roles.includes(UserRole.SUPER_ADMIN);
+  const isClient = accountType === AccountType.CLIENT && !isAdmin;
+  const isTalent = accountType === AccountType.TALENT && !isAdmin;
+  const { data: talentProfile } = useTalentProfile(isTalent || showAccountLinks);
+  const { data: clientProfile } = useClientProfile(isClient);
 
-  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "";
-  const roles = ((user?.roles ?? []) as UserRole[]).filter(
-    (role) => role !== UserRole.USER
-  );
   const roleLabel =
     roles.length > 0
-      ? roles.map((role) => ROLE_LABELS[role] ?? role).join(", ")
-      : user?.accountType ?? "";
+      ? roles
+          .filter((role) => role !== UserRole.USER)
+          .map((role) => ROLE_LABELS[role] ?? role)
+          .join(", ")
+      : accountType ?? "";
   const fullName = talentProfile
     ? [talentProfile.firstName, talentProfile.lastName]
         .filter(Boolean)
         .join(" ")
-    : "";
-  const accountType = user?.accountType;
-  const isClient = accountType === AccountType.CLIENT;
-  const isTalent = accountType === AccountType.TALENT;
+    : clientProfile
+      ? [clientProfile.contactFirstName, clientProfile.contactLastName]
+          .filter(Boolean)
+          .join(" ")
+      : "";
+  const derivedName = user?.email.split("@")[0].replace(/[._-]/g, " ").trim() ?? "";
+  const displayName = fullName || derivedName || user?.email || "";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <DropdownMenu>
@@ -70,29 +79,29 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
             </AvatarFallback>
           </Avatar>
           <span className="hidden max-w-32 truncate text-sm font-medium sm:block">
-            {fullName || user?.email}
+            {displayName}
           </span>
           <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground sm:block" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
-          {fullName && <p className="truncate font-medium">{fullName}</p>}
-          <p className="truncate capitalize">{roleLabel}</p>
+          <p className="truncate font-medium">{displayName}</p>
+          <p className="truncate text-[11px] font-normal capitalize text-muted-foreground">
+            {roleLabel}
+          </p>
           <p className="truncate text-xs font-normal text-muted-foreground">
             {user?.email}
           </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {(isClient || isTalent) && (
+        {(isClient || isTalent || isAdmin) && (
           <>
             <DropdownMenuItem
-              onSelect={() =>
-                router.push(isClient ? "/client-profile" : "/profile")
-              }
+              onSelect={() => router.push("/profile")}
               className="cursor-pointer"
             >
-              {isClient ? <Building2 /> : <User />}
+              {!isAdmin && isClient ? <Building2 /> : <User />}
               Profile
             </DropdownMenuItem>
           </>
@@ -100,7 +109,7 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
         {showAccountLinks && (
           <>
             <DropdownMenuItem
-              onSelect={() => router.push("/dashboard/referral")}
+              onSelect={() => router.push("/referral")}
               className="cursor-pointer"
             >
               <Gift />
@@ -145,19 +154,17 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
 }
 
 const talentLinks = [
-  { href: "/dashboard", label: "Home" },
-  { href: "/jobs", label: "Jobs" },
+  { href: "/home", label: "Home", mobileLabel: "Home" },
+  { href: "/jobs", label: "Jobs", mobileLabel: "Jobs" },
 ];
 
 function TalentHeader({ pathname }: { pathname: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { data: unread } = useUnreadCount();
-  const unreadCount = unread ?? 0;
   const linkClass = (href: string) =>
-    `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-      pathname === href || pathname.startsWith(href + "/")
-        ? "bg-primary/10 text-primary"
-        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+    `px-3 py-2 text-sm font-medium transition-colors ${
+      pathname === href || (href !== "/" && pathname.startsWith(href + "/"))
+        ? "text-primary"
+        : "text-muted-foreground hover:text-foreground"
     }`;
 
   return (
@@ -173,12 +180,14 @@ function TalentHeader({ pathname }: { pathname: string }) {
             {menuOpen ? <X className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
           </button>
           <Link
-            href="/dashboard"
+            href="/"
             className="text-lg font-bold tracking-tight sm:text-xl"
           >
             Worker
           </Link>
-          <GlobalSearch />
+          <div className="ml-16 hidden min-w-0 flex-1 max-w-2xl sm:block">
+            <GlobalSearch className="w-full" />
+          </div>
         </div>
         <nav className="hidden items-center gap-1 lg:flex">
           {talentLinks.map((link) => (
@@ -188,18 +197,7 @@ function TalentHeader({ pathname }: { pathname: string }) {
           ))}
         </nav>
         <div className="flex flex-1 items-center justify-end gap-2">
-          <Link
-            href="/notifications"
-            aria-label="Notifications"
-            className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </Link>
+          <NotificationBell />
           <UserMenu showAccountLinks />
         </div>
       </div>
@@ -213,7 +211,7 @@ function TalentHeader({ pathname }: { pathname: string }) {
               onClick={() => setMenuOpen(false)}
               className={linkClass(link.href)}
             >
-              {link.label}
+              {link.mobileLabel}
             </Link>
           ))}
         </nav>

@@ -13,6 +13,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useVerifyEmail, useResendVerification } from "@/hooks/api/useAuth";
+import { getDashboardRoute } from "@/lib/utils";
 
 interface OtpVerificationProps {
   email: string;
@@ -77,7 +78,7 @@ export function OtpVerification({
         onSuccess: (response) => {
           toast.success(response.message || "Email verified");
           onDone?.();
-          router.push("/");
+          router.push(getDashboardRoute(response.data.user));
         },
         onError: (error) => {
           const message =

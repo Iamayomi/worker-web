@@ -12,6 +12,7 @@ import { AccountType } from "@/types/api/auth";
 import { GoogleIcon } from "@/components/icons/google-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getDashboardRoute } from "@/lib/utils";
 
 const GOOGLE_CLIENT_ID =
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
@@ -93,14 +94,21 @@ export function GoogleSignInButton({
 
   const continueAfterPassword = () => {
     if (!pendingDestination) {
-      router.push("/");
+      router.push(
+        getDashboardRoute({ accountType: AccountType.TALENT, roles: [] })
+      );
       return;
     }
     if (!pendingDestination.profileComplete) {
       router.push(`/complete-profile?type=${pendingDestination.type}`);
       return;
     }
-    router.push("/");
+    router.push(
+      getDashboardRoute({
+        accountType: pendingDestination.type as AccountType,
+        roles: [],
+      })
+    );
   };
 
   const handleSetPassword = async () => {
@@ -166,7 +174,7 @@ export function GoogleSignInButton({
           if (!data.data.profile_complete) {
             router.push(`/complete-profile?type=${type}`);
           } else {
-            router.push("/");
+            router.push(getDashboardRoute(data.data.user));
           }
         },
         onError: (error) => {

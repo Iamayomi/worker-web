@@ -20,9 +20,7 @@ export default function AnalyticsPage() {
       router.replace("/admin/analytics");
       return;
     }
-    router.replace(
-      user?.accountType === AccountType.CLIENT ? "/client-profile" : "/profile"
-    );
+    router.replace("/profile");
   }, [router, user?.accountType, isAdmin]);
 
   return null;

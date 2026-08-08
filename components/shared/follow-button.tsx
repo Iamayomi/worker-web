@@ -8,13 +8,11 @@ import { Button } from "@/components/ui/button";
 
 interface FollowButtonProps {
   targetUserId: string;
-  showCount?: boolean;
   className?: string;
 }
 
 export function FollowButton({
   targetUserId,
-  showCount = false,
   className,
 }: FollowButtonProps) {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -46,18 +44,8 @@ export function FollowButton({
     }
   };
 
-  const followerCountLabel =
-    showCount && status && status.followerCount > 0
-      ? `${status.followerCount} ${status.followerCount === 1 ? "follower" : "followers"}`
-      : undefined;
-
   if (isSelf) {
-    if (!showCount) return null;
-    return followerCountLabel ? (
-      <span className={`text-sm text-muted-foreground ${className ?? ""}`}>
-        {followerCountLabel}
-      </span>
-    ) : null;
+    return null;
   }
 
   const isFollowing = status?.isFollowing ?? false;
@@ -75,9 +63,6 @@ export function FollowButton({
         ) : null}
         {isFollowing ? "Following" : "Follow"}
       </Button>
-      {showCount && followerCountLabel ? (
-        <span className="text-xs text-muted-foreground">{followerCountLabel}</span>
-      ) : null}
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { MessagesSquare } from "lucide-react";
+import { useSeedPresence } from "@/lib/hooks/use-presence";
+import { usePresenceStore } from "@/store/presenceStore";
 import type { ChatConversationSummary } from "@/lib/types/chat";
 
 function initials(name?: string, email?: string): string {
@@ -39,6 +41,9 @@ export function ConversationList({
 	action?: React.ReactNode;
 }) {
 	const pathname = usePathname();
+	const onlineUserIds = usePresenceStore((s) => s.onlineUserIds);
+
+	useSeedPresence(items.map((item) => item.participant));
 
 	if (isLoading) {
 		return (
@@ -97,6 +102,7 @@ export function ConversationList({
 										: "border-border/10 hover:bg-secondary/50"
 								}`}
 							>
+							<span className="relative shrink-0">
 								<Avatar className="size-10">
 									{item.participant.avatarUrl ? (
 										<AvatarImage
@@ -108,6 +114,14 @@ export function ConversationList({
 										{initials(item.participant.name, item.participant.email)}
 									</AvatarFallback>
 								</Avatar>
+								<span
+									className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-background ${
+										onlineUserIds[item.participant.userId]
+											? "bg-emerald-500"
+											: "bg-muted-foreground/40"
+									}`}
+								/>
+							</span>
 								<div className="min-w-0 flex-1">
 									<div className="flex items-center justify-between gap-2">
 										<p className="truncate text-sm font-semibold">

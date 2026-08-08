@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -8,8 +8,14 @@ import {
   ArrowLeft,
   Briefcase,
   CheckCircle2,
-  ChevronRight,
+  Download,
+  Eye,
+  FileText,
+  Globe,
+  Link2,
+  LoaderCircle,
   MapPin,
+  MessageCircle,
   Star,
   XCircle,
 } from "lucide-react";
@@ -20,17 +26,28 @@ import {
   useUpdateApplicationStatus,
   useUpdateApplicationStatusAdmin,
 } from "@/lib/hooks/use-jobs";
-import { useCreateHireRating } from "@/lib/hooks/use-analytics";
+import { useCreateHireRating, useRecordAnalyticsEvent } from "@/lib/hooks/use-analytics";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { usePublicTalentProfile } from "@/lib/hooks/use-profiles";
+import { useCreateConversation } from "@/lib/hooks/use-chat";
 import { APPLICATION_STATUS } from "@/lib/constants/status";
 import { APPLICATION_STATUSES } from "@/lib/constants/enums";
+import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormTextarea } from "@/components/ui/form-textarea";
+import { FormSelect } from "@/components/ui/form-select";
 import { ErrorAlert } from "@/components/shared/error-alert";
 import { AnimatedContent } from "@/components/shared/animated-content";
+import { FollowButton } from "@/components/shared/follow-button";
+import {
+  CertificationList,
+  EducationList,
+  WorkExperienceList,
+} from "@/components/profile/talent-entry-list";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -44,23 +61,27 @@ import {
   type Application,
 } from "@/types/api/jobs";
 
-const NEXT_STATUS: Partial<Record<ApplicationStatus, ApplicationStatus>> = {
-  [ApplicationStatus.APPLIED]: ApplicationStatus.UNDER_REVIEW,
-  [ApplicationStatus.UNDER_REVIEW]: ApplicationStatus.SHORTLISTED,
-  [ApplicationStatus.SHORTLISTED]: ApplicationStatus.INTERVIEW,
-  [ApplicationStatus.INTERVIEW]: ApplicationStatus.OFFERED,
-  [ApplicationStatus.OFFERED]: ApplicationStatus.ACCEPTED,
-};
-
 const STATUS_LABEL: Record<ApplicationStatus, string> = Object.fromEntries(
   APPLICATION_STATUSES.map((s) => [s.value, s.label])
 ) as Record<ApplicationStatus, string>;
+
+const CLIENT_STATUS_OPTIONS = APPLICATION_STATUSES.filter((s) =>
+  ["under_review", "shortlisted", "interview", "offered", "accepted"].includes(
+    s.value
+  )
+);
 
 const TERMINAL: ApplicationStatus[] = [
   ApplicationStatus.ACCEPTED,
   ApplicationStatus.REJECTED,
   ApplicationStatus.WITHDRAWN,
 ];
+
+const employmentLabel = (value?: string) =>
+  EMPLOYMENT_TYPES.find((t) => t.value === value)?.label ?? value;
+
+const preferenceLabel = (value?: string) =>
+  WORK_PREFERENCES.find((t) => t.value === value)?.label ?? value;
 
 function Timeline({ application }: { application: Application }) {
   const events = application.events ?? [];
@@ -178,7 +199,12 @@ function HireRatingCard({ applicationId }: { applicationId: string }) {
 export default function ApplicationDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const router = useRouter();
   const { user } = useAuth();
+  const createConversation = useCreateConversation();
+  const recordEvent = useRecordAnalyticsEvent();
+  const [startingChat, setStartingChat] = useState(false);
+  const [downloadingCv, setDownloadingCv] = useState(false);
   const isAdmin = user
     ? ((user.roles ?? []) as string[]).some((r) =>
         ["super_admin", "admin"].includes(r)
@@ -192,11 +218,15 @@ export default function ApplicationDetailPage() {
     : useUpdateApplicationStatus();
   const acceptOffer = useAcceptOffer();
 
+  const isClient = user?.accountType === "client";
+  const talentProfileId = isClient ? application?.talent?.id ?? "" : "";
+  const { data: talentProfile } = usePublicTalentProfile(talentProfileId);
+
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [statusDraft, setStatusDraft] = useState<ApplicationStatus | "">("");
 
-  const isClient = user?.accountType === "client";
   const isTerminal = application ? TERMINAL.includes(application.status) : true;
 
   const detailName = isClient
@@ -207,14 +237,64 @@ export default function ApplicationDetailPage() {
     : application?.job?.title ?? "Application";
   usePageTitle(detailName);
 
-  const advance = () => {
-    if (!application) return;
-    const next = NEXT_STATUS[application.status];
-    if (!next) return;
+  const startChat = async () => {
+    if (!talentProfile) return;
+    setStartingChat(true);
+    try {
+      const result = await createConversation.mutateAsync({
+        participantIds: [talentProfile.userId],
+      });
+      if (result?.id) {
+        router.push(`/messages/${result.id}`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start chat");
+    } finally {
+      setStartingChat(false);
+    }
+  };
+
+  const downloadCv = async () => {
+    if (!talentProfile?.resumeUrl) return;
+    setDownloadingCv(true);
+    try {
+      recordEvent.mutate({
+        eventType: "resume_download",
+        targetType: "talent_profile",
+        targetId: talentProfile.id,
+      });
+      const res = await fetch(talentProfile.resumeUrl);
+      if (!res.ok) throw new Error("Failed to download CV");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${[talentProfile.firstName, talentProfile.lastName]
+        .filter(Boolean)
+        .join("_") || "candidate"}_CV.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      window.open(talentProfile.resumeUrl, "_blank", "noopener,noreferrer");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to download CV"
+      );
+    } finally {
+      setDownloadingCv(false);
+    }
+  };
+
+  const applyStatus = () => {
+    if (!application || !statusDraft) return;
     updateStatus.mutate(
-      { id: application.id, data: { toStatus: next } },
+      { id: application.id, data: { toStatus: statusDraft } },
       {
-        onSuccess: () => toast.success("Application moved forward"),
+        onSuccess: () => {
+          toast.success("Application status updated");
+          setStatusDraft("");
+        },
         onError: (err) =>
           toast.error(err instanceof Error ? err.message : "Update failed"),
       }
@@ -284,7 +364,6 @@ export default function ApplicationDetailPage() {
   const backHref = isClient
     ? `/jobs/manage/${application.jobId}/applications`
     : "/jobs";
-  const next = NEXT_STATUS[application.status];
   const offerPending = !isClient && application.status === "offered";
 
   return (
@@ -314,9 +393,28 @@ export default function ApplicationDetailPage() {
               : `${application.job?.companyName ?? "Company"} · ${application.job?.location ?? ""}`}
           </p>
         </div>
-        <Badge className={APPLICATION_STATUS[application.status] ?? undefined}>
-          {STATUS_LABEL[application.status] ?? application.status}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge className={APPLICATION_STATUS[application.status] ?? undefined}>
+            {STATUS_LABEL[application.status] ?? application.status}
+          </Badge>
+          {isClient && talentProfile && (
+            <>
+              <FollowButton targetUserId={talentProfile.userId} />
+              <Button
+                variant="outline"
+                onClick={startChat}
+                disabled={startingChat || createConversation.isPending}
+              >
+                {startingChat ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MessageCircle className="h-4 w-4" />
+                )}
+                Message
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {application.rejectionReason && (
@@ -326,79 +424,198 @@ export default function ApplicationDetailPage() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {isClient && (application.talent || application.applicantEmail) && (
-          <div className="rounded-xl border border-border/15 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Applicant
-            </h2>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div className="flex justify-between gap-2">
-                <dt className="text-muted-foreground">Email</dt>
-                <dd>{application.applicantEmail || "—"}</dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-muted-foreground">Phone</dt>
-                <dd>{application.applicantPhone ?? "—"}</dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-muted-foreground">Location</dt>
-                <dd>{application.talent?.country ?? "—"}</dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-muted-foreground">Experience</dt>
-                <dd>
-                  {application.yearsOfExperience != null
-                    ? `${application.yearsOfExperience} yrs`
-                    : application.talent?.yearsOfExperience != null
-                      ? `${application.talent.yearsOfExperience} yrs`
-                      : "—"}
-                </dd>
-              </div>
-              {application.talent?.skills &&
-                application.talent.skills.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {application.talent.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
+      {application.job && (
+        <div className="rounded-xl border border-border/15 p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Job
+          </h2>
+          <div className="mt-3 space-y-2 text-sm">
+            <p className="font-medium">{application.job.title}</p>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Briefcase className="h-3.5 w-3.5" />
+              {application.job.companyName}
+            </div>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5" />
+              {application.job.location}
+            </div>
+            {application.job.salaryMin != null && (
+              <p className="font-medium">
+                {application.job.salaryMin.toLocaleString()}
+                {application.job.salaryMax != null &&
+                  ` – ${application.job.salaryMax.toLocaleString()}`}{" "}
+                {application.job.currency?.toUpperCase()}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isClient && talentProfileId && (
+        <div className="space-y-4">
+          {!talentProfile ? (
+            <div className="rounded-xl border border-border/15 p-5">
+              <div className="h-6 w-40 animate-pulse rounded bg-muted" />
+              <div className="mt-3 h-4 w-full animate-pulse rounded bg-muted" />
+              <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-muted" />
+            </div>
+          ) : (
+            <>
+              <div className="rounded-xl border border-border/15 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <Avatar className="size-14">
+                      {talentProfile.avatarUrl && (
+                        <AvatarImage
+                          src={talentProfile.avatarUrl}
+                          alt={`${talentProfile.firstName} ${talentProfile.lastName}`}
+                          className="object-cover"
+                        />
+                      )}
+                      <AvatarFallback className="font-semibold">
+                        {[talentProfile.firstName, talentProfile.lastName]
+                          .filter(Boolean)
+                          .map((name) => name[0]?.toUpperCase() ?? "")
+                          .join("") || "T"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <Link
+                        href={`/talent/${talentProfile.id}`}
+                        className="font-semibold transition-colors hover:text-primary hover:underline"
                       >
+                        {[talentProfile.firstName, talentProfile.lastName]
+                          .filter(Boolean)
+                          .join(" ")}
+                      </Link>
+                      <p className="text-sm text-muted-foreground">
+                        {talentProfile.professionalTitle ?? "Talent"}
+                      </p>
+                      {[talentProfile.country, talentProfile.stateOfResidence]
+                        .filter(Boolean)
+                        .join(", ") && (
+                        <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {[talentProfile.country, talentProfile.stateOfResidence]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {talentProfile.bio && (
+                  <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                    {talentProfile.bio}
+                  </p>
+                )}
+
+                {talentProfile.skills && talentProfile.skills.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {talentProfile.skills.map((skill) => (
+                      <Badge key={skill} variant="secondary">
                         {skill}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 )}
-            </dl>
-          </div>
-        )}
 
-        {application.job && (
-          <div className="rounded-xl border border-border/15 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Job
-            </h2>
-            <div className="mt-3 space-y-2 text-sm">
-              <p className="font-medium">{application.job.title}</p>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Briefcase className="h-3.5 w-3.5" />
-                {application.job.companyName}
+                <dl className="mt-4 space-y-2 text-sm">
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted-foreground">Email</dt>
+                    <dd>{application.applicantEmail || "—"}</dd>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted-foreground">Phone</dt>
+                    <dd>{application.applicantPhone ?? "—"}</dd>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted-foreground">Experience</dt>
+                    <dd>
+                      {talentProfile.yearsOfExperience != null
+                        ? `${talentProfile.yearsOfExperience} ${
+                            talentProfile.yearsOfExperience === 1 ? "year" : "years"
+                          }`
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted-foreground">Employment type</dt>
+                    <dd>{employmentLabel(talentProfile.employmentType) ?? "—"}</dd>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted-foreground">Work preference</dt>
+                    <dd>{preferenceLabel(talentProfile.workPreference) ?? "—"}</dd>
+                  </div>
+                </dl>
+
+                <div className="mt-4 space-y-2 border-t border-border/10 pt-4">
+                  {talentProfile.resumeUrl && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/10 px-3 py-2">
+                      <span className="inline-flex min-w-0 items-center gap-2 text-sm font-medium">
+                        <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate">CV / Résumé</span>
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <Button asChild size="sm" variant="outline">
+                          <a
+                            href={talentProfile.resumeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Preview
+                          </a>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={downloadCv}
+                          disabled={downloadingCv}
+                        >
+                          {downloadingCv ? (
+                            <LoaderCircle className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                          Download
+                        </Button>
+                      </span>
+                    </div>
+                  )}
+                  {talentProfile.portfolioUrl && (
+                    <a
+                      href={talentProfile.portfolioUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                    >
+                      <Globe className="h-4 w-4" />
+                      Portfolio
+                    </a>
+                  )}
+                  {talentProfile.linkedinUrl && (
+                    <a
+                      href={talentProfile.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                    >
+                      <Link2 className="h-4 w-4" />
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5" />
-                {application.job.location}
-              </div>
-              {application.job.salaryMin != null && (
-                <p className="font-medium">
-                  {application.job.salaryMin.toLocaleString()}
-                  {application.job.salaryMax != null &&
-                    ` – ${application.job.salaryMax.toLocaleString()}`}{" "}
-                  {application.job.currency?.toUpperCase()}
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+
+              <WorkExperienceList talentProfileId={talentProfileId} />
+              <EducationList talentProfileId={talentProfileId} />
+              <CertificationList talentProfileId={talentProfileId} />
+            </>
+          )}
+        </div>
+      )}
 
       <div className="rounded-xl border border-border/15 p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -429,16 +646,28 @@ export default function ApplicationDetailPage() {
         <HireRatingCard applicationId={application.id} />
       )}
 
-      {!isTerminal && (
-        <div className="flex flex-wrap gap-2">
+      {(isClient || !isTerminal) && (
+        <div className="flex flex-wrap items-end gap-3">
           {isClient ? (
             <>
-              {next && (
-                <Button onClick={advance} disabled={updateStatus.isPending}>
-                  Move to {STATUS_LABEL[next]}
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              )}
+              <FormSelect
+                label="Application status"
+                value={statusDraft || application.status || ""}
+                onValueChange={(value) => setStatusDraft(value as ApplicationStatus | "")}
+                options={CLIENT_STATUS_OPTIONS}
+                className="min-w-52"
+              />
+              <Button
+                onClick={applyStatus}
+                disabled={
+                  updateStatus.isPending || !statusDraft || statusDraft === application.status
+                }
+              >
+                {updateStatus.isPending && (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                )}
+                Update status
+              </Button>
               <Button
                 variant="outline"
                 className="text-destructive hover:text-destructive"
