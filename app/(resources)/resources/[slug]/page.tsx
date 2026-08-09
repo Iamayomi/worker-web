@@ -74,6 +74,8 @@ export default function PostDetailPage() {
 
   usePageTitle(post?.title);
 
+  const isHtmlContent = /<\/?[a-z][\s\S]*>/i.test(post?.content ?? "");
+
   return (
     <AnimatedContent>
       <article className="mx-auto max-w-3xl px-5 py-12 sm:px-8">
@@ -134,9 +136,18 @@ export default function PostDetailPage() {
             )}
 
             <div className="mt-8 text-base leading-relaxed">
-              <ReactMarkdown components={markdownComponents}>
-                {post.content}
-              </ReactMarkdown>
+              {isHtmlContent ? (
+                <div className="tiptap-content">
+                  <div
+                    className="tiptap"
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                  />
+                </div>
+              ) : (
+                <ReactMarkdown components={markdownComponents}>
+                  {post.content}
+                </ReactMarkdown>
+              )}
             </div>
 
             {post.tags.length > 0 && (

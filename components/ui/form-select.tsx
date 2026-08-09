@@ -14,7 +14,7 @@ interface SelectOption {
 }
 
 interface FormSelectProps {
-  label: string;
+  label?: string;
   value: string;
   onValueChange: (value: string) => void;
   options: readonly SelectOption[] | SelectOption[];
@@ -38,10 +38,12 @@ export function FormSelect({
 }: FormSelectProps) {
   return (
     <div className="space-y-1.5">
-      <Label>
-        {label}
-        {required && <span className="text-foreground"> *</span>}
-      </Label>
+      {label && (
+        <Label>
+          {label}
+          {required && <span className="text-foreground"> *</span>}
+        </Label>
+      )}
       <Select value={value || undefined} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger
           className={cn("w-full", error && "border-destructive", className)}

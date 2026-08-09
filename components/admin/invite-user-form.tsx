@@ -21,12 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mail, ShieldCheck } from "lucide-react";
-import { AnimatedContent } from "@/components/shared/animated-content";
-import { PageHeader } from "@/components/shared/page-header";
-import { InviteSubNav } from "@/components/invite/invite-sub-nav";
+import { ShieldCheck } from "lucide-react";
 
-export default function InviteUserPage() {
+export function InviteUserForm() {
   const { user } = useAuth();
   const invite = useInviteUser();
 
@@ -48,8 +45,6 @@ export default function InviteUserPage() {
       allowedRoles.includes(r)
     );
   }, [accountType, allowedRoles]);
-
-  const canInvite = allowedAccountTypes.length > 0;
 
   function selectAccountType(value: AccountType) {
     setAccountType(value);
@@ -73,50 +68,27 @@ export default function InviteUserPage() {
     );
   }
 
-  if (!canInvite) {
-    return (
-      <AnimatedContent>
-        <div className="mx-auto max-w-2xl">
-          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            Your role does not allow inviting users.
-          </div>
-        </div>
-      </AnimatedContent>
-    );
-  }
-
   return (
-    <AnimatedContent className="mx-auto max-w-2xl space-y-6">
-      <PageHeader
-        title="Invite a user"
-        description="Send an invitation email so they can join and set up their account."
-      />
-
-      <InviteSubNav />
-
+    <div>
       {invite.isError && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {invite.error instanceof Error
             ? invite.error.message
             : "Failed to send invite"}
         </div>
       )}
       {invite.isSuccess && (
-        <div className="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-600">
+        <div className="mb-4 rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-600">
           Invitation sent to {lastInvited}.
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 rounded-lg border border-border/15 p-5"
-      >
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="invite-email">
             Email address<span className="text-foreground"> *</span>
           </Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="invite-email"
               type="email"
@@ -124,7 +96,6 @@ export default function InviteUserPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="colleague@company.com"
-              className="pl-9"
             />
           </div>
         </div>
@@ -176,14 +147,12 @@ export default function InviteUserPage() {
 
         <Button
           type="submit"
-          disabled={
-            invite.isPending || !email.trim() || !accountType || !role
-          }
+          disabled={invite.isPending || !email.trim() || !accountType || !role}
         >
           <ShieldCheck className="h-4 w-4" />
           {invite.isPending ? "Sending..." : "Send invite"}
         </Button>
       </form>
-    </AnimatedContent>
+    </div>
   );
 }

@@ -5,12 +5,16 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { href: "/invite", label: "Invite" },
-  { href: "/invite/invitees", label: "My invitees" },
+  { href: "/settings/notifications", label: "Notifications" },
+  { href: "/settings/blocked", label: "Blocked users" },
 ];
 
-export function InviteSubNav() {
+export function SettingsSubNav() {
   const pathname = usePathname();
+  const isActive = (href: string) =>
+    href === "/settings"
+      ? pathname === "/settings"
+      : pathname.startsWith(href);
 
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -20,7 +24,7 @@ export function InviteSubNav() {
           href={tab.href}
           className={cn(
             "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-            pathname === tab.href || pathname.startsWith(tab.href + "/")
+            isActive(tab.href)
               ? "bg-primary/10 text-primary"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground"
           )}

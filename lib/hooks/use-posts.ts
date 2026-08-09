@@ -60,6 +60,18 @@ export function useAdminPosts(params?: PostQueryParams) {
   });
 }
 
+export function useAdminPost(id: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.content.adminDetail(id ?? ""),
+    enabled: !!id,
+    queryFn: async () => {
+      const res = await worker.auth.get<Post>(`/content/posts/${id}`);
+      if (!res.success) throw new Error(res.message || "Failed to load post");
+      return res.data!;
+    },
+  });
+}
+
 export function useCreatePost() {
   const queryClient = useQueryClient();
   return useMutation({

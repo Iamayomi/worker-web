@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 export interface BarDatum {
   label: string;
   value: number;
+  /** Optional unique key; falls back to `label`. */
+  id?: string;
 }
 
 interface BarChartProps {
@@ -71,11 +73,11 @@ export function BarChart({
           );
         })}
         {bars.map((b) => (
-          <title key={b.label}>{`${b.label}: ${b.value}${valueSuffix}`}</title>
+          <title key={b.id ?? b.label}>{`${b.label}: ${b.value}${valueSuffix}`}</title>
         ))}
         {bars.map((b) => (
           <rect
-            key={b.label}
+            key={b.id ?? b.label}
             x={b.x}
             y={b.y}
             width={b.w}
@@ -88,7 +90,7 @@ export function BarChart({
       <div className="mt-2 flex gap-1">
         {data.map((d) => (
           <span
-            key={d.label}
+            key={d.id ?? d.label}
             className="flex-1 truncate text-center text-[10px] text-muted-foreground"
             title={`${d.label}: ${d.value}${valueSuffix}`}
           >

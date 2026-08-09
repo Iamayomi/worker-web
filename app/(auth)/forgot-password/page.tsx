@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle, Mail } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { z } from "zod";
@@ -77,12 +77,10 @@ export default function ForgotPasswordPage() {
                 <FormLabel>Email address</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="email"
                       placeholder="you@example.com"
                       autoComplete="email"
-                      className="pl-9"
                       {...field}
                     />
                   </div>

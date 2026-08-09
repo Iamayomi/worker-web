@@ -8,7 +8,8 @@ import { AnimatedContent } from "@/components/shared/animated-content";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableSkeleton } from "@/components/shared/skeletons";
 import { DeleteModal } from "@/components/ui/delete-modal";
-import { Ban, Inbox } from "lucide-react";
+import { Ban } from "lucide-react";
+import { SettingsSubNav } from "@/components/settings/settings-sub-nav";
 import type { BlockData } from "@/lib/hooks/use-safety";
 
 function initials(email?: string): string {
@@ -50,8 +51,17 @@ export default function BlockedUsersPage() {
     <AnimatedContent>
       <div className="mx-auto max-w-3xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Blocked users</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
           <p className="mt-1 text-sm text-muted-foreground">
+            Manage your account security and preferences.
+          </p>
+        </div>
+
+        <SettingsSubNav />
+
+        <div>
+          <h2 className="text-lg font-semibold">Blocked users</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Users you&apos;ve blocked can&apos;t message you. Unblock anytime.
           </p>
         </div>

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Eye, EyeOff, LoaderCircle, Lock, Mail } from "lucide-react";
+import { Check, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -139,12 +139,10 @@ export default function LoginPage() {
                 <FormLabel>Email address</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="email"
                       placeholder="you@example.com"
                       autoComplete="email"
-                      className="pl-9"
                       {...field}
                     />
                   </div>
@@ -170,12 +168,11 @@ export default function LoginPage() {
                 </div>
                 <FormControl>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       autoComplete="current-password"
-                      className="pl-9 pr-10"
+                      className="pr-10"
                       {...field}
                     />
                     <button

@@ -39,6 +39,17 @@ export const queryKeys = {
     analytics: (params?: object) =>
       ["applications", "analytics", params] as const,
   },
+  interviews: {
+    all: ["interviews"] as const,
+    list: (params: object) => ["interviews", "list", params] as const,
+    detail: (id: string) => ["interviews", "detail", id] as const,
+    calendar: (params: object) =>
+      ["interviews", "calendar", params] as const,
+  },
+  googleCalendar: {
+    all: ["google-calendar"] as const,
+    status: () => ["google-calendar", "status"] as const,
+  },
   savedJobs: {
     all: ["savedJobs"] as const,
     ids: () => ["savedJobs", "ids"] as const,
@@ -63,11 +74,13 @@ export const queryKeys = {
     detail: (slug: string) => ["content", "posts", "detail", slug] as const,
     adminList: (params: object) =>
       ["content", "posts", "admin", params] as const,
+    adminDetail: (id: string) => ["content", "posts", "admin", id] as const,
   },
   pages: {
     all: () => ["content", "pages"] as const,
     bySlug: (slug: string) => ["content", "pages", slug] as const,
     adminList: () => ["content", "pages", "admin"] as const,
+    adminDetail: (id: string) => ["content", "pages", "admin", id] as const,
     list: (params: object) => ["content", "pages", "list", params] as const,
   },
   chat: {
@@ -83,5 +96,11 @@ export const queryKeys = {
     talent: (days?: number) => ["analytics", "talent", { days }] as const,
     client: (days?: number) => ["analytics", "client", { days }] as const,
     preferences: () => ["analytics", "preferences"] as const,
+  },
+  health: {
+    all: () => ["health", "all"] as const,
+    live: () => ["health", "live"] as const,
+    ready: () => ["health", "ready"] as const,
+    metrics: () => ["health", "metrics"] as const,
   },
 };

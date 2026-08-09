@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { value: "all", label: "All notifications", href: "/admin/notifications" },
   { value: "send", label: "Send", href: "/admin/notifications/send" },
 ] as const;
 

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   Briefcase,
+  CalendarDays,
   CheckCircle2,
   Download,
   Eye,
@@ -397,6 +398,16 @@ export default function ApplicationDetailPage() {
           <Badge className={APPLICATION_STATUS[application.status] ?? undefined}>
             {STATUS_LABEL[application.status] ?? application.status}
           </Badge>
+          {isClient && (
+            <Button asChild>
+              <Link
+                href={`/interviews/new?applicationId=${application.id}&jobId=${application.jobId}&candidateId=${application.talentId}`}
+              >
+                <CalendarDays className="h-4 w-4" />
+                Schedule interview
+              </Link>
+            </Button>
+          )}
           {isClient && talentProfile && (
             <>
               <FollowButton targetUserId={talentProfile.userId} />
