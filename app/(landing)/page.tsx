@@ -589,7 +589,7 @@ export default function LandingPage() {
             <div>
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Why hire globally</h2>
               <p className="mt-3 max-w-md text-base text-muted-foreground">
-                Great talent isn't limited by geography. Worker makes it effortless to hire the best
+                Great talent isn&apos;t limited by geography. Worker makes it effortless to hire the best
                 people anywhere in the world.
               </p>
               <ul className="mt-8 space-y-4">

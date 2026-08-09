@@ -469,10 +469,12 @@ export function useAllApplications(params: {
 
 export function useJobApplications(
   jobId: string,
-  params: Record<string, unknown> = {}
+  params: Record<string, unknown> = {},
+  enabled = true
 ) {
   return useQuery({
     queryKey: queryKeys.applications.byJob(jobId, params),
+    enabled: Boolean(jobId) && enabled,
     queryFn: async () => {
       const res = await worker.auth.get<ApplicationListData>(
         buildUrl(`/jobs/${jobId}/applications`, params)

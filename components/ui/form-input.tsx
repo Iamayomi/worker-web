@@ -4,19 +4,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string;
+  label?: string;
   error?: string;
 }
 
 const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
   ({ label, error, required, className, id, ...props }, ref) => {
-    const inputId = id || label.toLowerCase().replace(/\s+/g, "-");
+    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
     return (
       <div className="space-y-1.5">
-        <Label htmlFor={inputId}>
-          {label}
-          {required && <span className="text-foreground"> *</span>}
-        </Label>
+        {label && (
+          <Label htmlFor={inputId}>
+            {label}
+            {required && <span className="text-foreground"> *</span>}
+          </Label>
+        )}
         <Input
           ref={ref}
           id={inputId}

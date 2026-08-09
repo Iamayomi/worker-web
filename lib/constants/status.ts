@@ -17,6 +17,26 @@ export const JOB_STATUS: Record<string, string> = {
   expired: "bg-red-500/10 text-red-600",
 };
 
+export const INTERVIEW_STATUS: Record<string, string> = {
+  invited: "bg-blue-500/10 text-blue-600",
+  scheduled: "bg-indigo-500/10 text-indigo-600",
+  completed: "bg-green-500/10 text-green-600",
+  cancelled: "bg-red-500/10 text-red-600",
+};
+
+export const INTERVIEW_RSVP_STATUS: Record<string, string> = {
+  invited: "bg-blue-500/10 text-blue-600",
+  accepted: "bg-green-500/10 text-green-600",
+  declined: "bg-red-500/10 text-red-600",
+};
+
+export const INTERVIEW_TYPE_LABEL: Record<string, string> = {
+  video_call: "Video call",
+  phone_call: "Phone call",
+  in_person: "In person",
+  technical_assessment: "Technical assessment",
+};
+
 export const USER_STATUS_STYLES: Record<string, string> = {
   active: "text-green-600",
   suspended: "text-red-600",

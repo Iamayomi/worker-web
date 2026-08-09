@@ -18,7 +18,6 @@ export function ReferralSubNav() {
   );
 
   const tabs = [
-    { href: "/referral", label: "Referral" },
     ...(isAdmin
       ? [{ href: "/referral/manage", label: "Manage" }]
       : []),

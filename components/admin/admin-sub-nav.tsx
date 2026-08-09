@@ -4,23 +4,40 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const tabs = [
-  { href: "/admin", label: "Users" },
-  { href: "/admin/invites", label: "Invites" },
+interface Tab {
+  id: string;
+  href: string;
+  label: string;
+}
+
+const tabs: Tab[] = [
+  { id: "users", href: "/admin", label: "Users" },
+  { id: "clients", href: "/admin/clients", label: "Client / Company" },
+  { id: "talent", href: "/admin/talent", label: "Talent" },
+  { id: "invites", href: "/admin/invites", label: "Invites" },
 ];
 
-export function AdminSubNav() {
+export function AdminSubNav({ active }: { active?: string }) {
   const pathname = usePathname();
+  const resolved =
+    active ??
+    (pathname.startsWith("/admin/invites")
+      ? "invites"
+      : pathname.startsWith("/admin/clients")
+        ? "clients"
+        : pathname.startsWith("/admin/talent")
+          ? "talent"
+          : "users");
 
   return (
     <div className="flex flex-wrap gap-1.5">
       {tabs.map((tab) => (
         <Link
-          key={tab.href}
+          key={tab.id}
           href={tab.href}
           className={cn(
             "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-            pathname === tab.href || pathname.startsWith(tab.href + "/")
+            resolved === tab.id
               ? "bg-primary/10 text-primary"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground"
           )}

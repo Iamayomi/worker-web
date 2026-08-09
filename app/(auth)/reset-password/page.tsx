@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, LoaderCircle, Lock } from "lucide-react";
+import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -141,13 +141,12 @@ function ResetPasswordForm() {
         <div className="space-y-1.5">
           <Label htmlFor="new-password">New password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="new-password"
               type={showPassword ? "text" : "password"}
               placeholder="At least 8 characters"
               autoComplete="new-password"
-              className="pl-9 pr-10"
+              className="pr-10"
               {...form.register("newPassword")}
             />
             <button

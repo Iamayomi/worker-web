@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface SectionCardProps {
   title?: string;
@@ -12,9 +18,9 @@ export function SectionCard({ title, children, className, actions }: SectionCard
   return (
     <Card className={className}>
       {(title || actions) && (
-        <CardHeader className="flex-row items-center justify-between">
+        <CardHeader>
           {title && <CardTitle>{title}</CardTitle>}
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
+          {actions && <CardAction>{actions}</CardAction>}
         </CardHeader>
       )}
       <CardContent>{children}</CardContent>

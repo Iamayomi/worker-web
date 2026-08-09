@@ -4,6 +4,11 @@ import {
   ApplicationType,
   JobStatus,
 } from "@/types/api/jobs";
+import {
+  InterviewStatus,
+  InterviewType,
+  InterviewRsvpStatus,
+} from "@/types/api/interviews";
 
 export const WORK_PREFERENCES = [
   { value: "remote", label: "Remote" },
@@ -64,6 +69,29 @@ export const APPLICATION_STATUSES = [
   { value: ApplicationStatus.ACCEPTED, label: "Accepted" },
   { value: ApplicationStatus.REJECTED, label: "Rejected" },
   { value: ApplicationStatus.WITHDRAWN, label: "Withdrawn" },
+] as const;
+
+export const INTERVIEW_TYPES = [
+  { value: InterviewType.VIDEO_CALL, label: "Video call" },
+  { value: InterviewType.PHONE_CALL, label: "Phone call" },
+  { value: InterviewType.IN_PERSON, label: "In person" },
+  {
+    value: InterviewType.TECHNICAL_ASSESSMENT,
+    label: "Technical assessment",
+  },
+] as const;
+
+export const INTERVIEW_STATUSES = [
+  { value: InterviewStatus.INVITED, label: "Invited" },
+  { value: InterviewStatus.SCHEDULED, label: "Scheduled" },
+  { value: InterviewStatus.COMPLETED, label: "Completed" },
+  { value: InterviewStatus.CANCELLED, label: "Cancelled" },
+] as const;
+
+export const INTERVIEW_RSVP_STATUSES = [
+  { value: InterviewRsvpStatus.INVITED, label: "Invited" },
+  { value: InterviewRsvpStatus.ACCEPTED, label: "Accepted" },
+  { value: InterviewRsvpStatus.DECLINED, label: "Declined" },
 ] as const;
 
 export const ROLE_LABELS: Record<UserRole, string> = {

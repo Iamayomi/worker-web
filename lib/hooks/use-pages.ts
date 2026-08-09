@@ -34,6 +34,18 @@ export function useAdminPages() {
   });
 }
 
+export function useAdminPage(id: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.pages.adminDetail(id ?? ""),
+    enabled: !!id,
+    queryFn: async () => {
+      const res = await worker.auth.get<Page>(`/content/pages/${id}`);
+      if (!res.success) throw new Error(res.message || "Failed to load page");
+      return res.data!;
+    },
+  });
+}
+
 export function usePublicPages(params: { page?: number; limit?: number } = {}) {
   const page = params.page ?? 1;
   const limit = params.limit ?? 50;
