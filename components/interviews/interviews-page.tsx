@@ -9,10 +9,8 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { AccountType, UserRole } from "@/types/api/auth";
 import {
   INTERVIEW_STATUSES,
-  INTERVIEW_TYPES,
 } from "@/lib/constants/enums";
 import { Button } from "@/components/ui/button";
-import { FormSelect } from "@/components/ui/form-select";
 import { FormInput } from "@/components/ui/form-input";
 import { AnimatedContent } from "@/components/shared/animated-content";
 import { PageHeader } from "@/components/shared/page-header";
@@ -20,10 +18,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorAlert } from "@/components/shared/error-alert";
 import { Pagination } from "@/components/shared/pagination";
 import { InterviewCard } from "./interview-card";
-import type {
-  InterviewStatus,
-  InterviewType,
-} from "@/types/api/interviews";
+import type { InterviewStatus } from "@/types/api/interviews";
 
 const PAGE_SIZE = 10;
 
@@ -32,7 +27,6 @@ export function InterviewsPage() {
   usePageTitle("Interviews");
 
   const [status, setStatus] = useState<InterviewStatus | "">("");
-  const [type, setType] = useState<InterviewType | "">("");
   const [page, setPage] = useState(1);
   const [companyQuery, setCompanyQuery] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -54,7 +48,6 @@ export function InterviewsPage() {
 
   const { data, isLoading, isError, error } = useInterviews({
     status: status || undefined,
-    type: type || undefined,
     companyName: isAdmin && companyName ? companyName : undefined,
     page,
     limit: PAGE_SIZE,
@@ -121,19 +114,6 @@ export function InterviewsPage() {
             </Button>
           ))}
         </div>
-        <FormSelect
-          value={type}
-          placeholder="All types"
-          onValueChange={(value) => {
-            setType(value as InterviewType | "");
-            setPage(1);
-          }}
-          options={[
-            { value: "", label: "All types" },
-            ...INTERVIEW_TYPES.map((t) => ({ value: t.value, label: t.label })),
-          ]}
-          className="w-48"
-        />
         {isAdmin && (
           <FormInput
             value={companyQuery}

@@ -156,6 +156,7 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
 const talentLinks = [
   { href: "/home", label: "Home", mobileLabel: "Home" },
   { href: "/jobs", label: "Jobs", mobileLabel: "Jobs" },
+  { href: "/interviews", label: "Interviews", mobileLabel: "Interviews" },
 ];
 
 function TalentHeader({ pathname }: { pathname: string }) {

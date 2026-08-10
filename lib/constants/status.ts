@@ -32,9 +32,6 @@ export const INTERVIEW_RSVP_STATUS: Record<string, string> = {
 
 export const INTERVIEW_TYPE_LABEL: Record<string, string> = {
   video_call: "Video call",
-  phone_call: "Phone call",
-  in_person: "In person",
-  technical_assessment: "Technical assessment",
 };
 
 export const USER_STATUS_STYLES: Record<string, string> = {

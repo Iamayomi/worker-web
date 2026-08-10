@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { ManagedPage } from "@/components/content/managed-page";
+import { CommunityDirectory } from "@/components/community/community-directory";
 
 export const metadata: Metadata = {
   title: "Community — Worker",
+  description:
+    "Join a global network of professionals. Connect with peers across every industry.",
 };
 
 export default function CommunityPage() {
-  return <ManagedPage slug="community" />;
+  return <CommunityDirectory />;
 }

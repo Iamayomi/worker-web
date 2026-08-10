@@ -9,9 +9,6 @@ export enum InterviewStatus {
 
 export enum InterviewType {
   VIDEO_CALL = "video_call",
-  PHONE_CALL = "phone_call",
-  IN_PERSON = "in_person",
-  TECHNICAL_ASSESSMENT = "technical_assessment",
 }
 
 export enum InterviewParty {
