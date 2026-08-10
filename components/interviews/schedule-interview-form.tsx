@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { LoaderCircle, Video } from "lucide-react";
 import { useScheduleInterview } from "@/lib/hooks/use-interviews";
 import { useMyJobs, useJobApplications } from "@/lib/hooks/use-jobs";
-import { INTERVIEW_TYPES } from "@/lib/constants/enums";
 import { COMMON_TIMEZONES } from "./reschedule-dialog";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form-input";
@@ -39,9 +38,6 @@ export function ScheduleInterviewForm() {
     params.get("applicationId") ?? ""
   );
   const [jobId, setJobId] = useState(params.get("jobId") ?? "");
-  const [type, setType] = useState<InterviewType>(
-    InterviewType.VIDEO_CALL
-  );
   const [scheduledAt, setScheduledAt] = useState<Date | undefined>(() => {
     const date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     date.setHours(10, 0, 0, 0);
@@ -97,7 +93,6 @@ export function ScheduleInterviewForm() {
   const canSubmit =
     hasApplication &&
     scheduledAt != null &&
-    type &&
     timezone &&
     !schedule.isPending;
 
@@ -105,7 +100,7 @@ export function ScheduleInterviewForm() {
     if (!hasApplication || !scheduledAt) return;
     const payload: ScheduleInterviewInput = {
       applicationId,
-      type,
+      type: InterviewType.VIDEO_CALL,
       scheduledAt: scheduledAt.toISOString(),
       timezone,
       durationMinutes: Number(duration),
@@ -169,16 +164,6 @@ export function ScheduleInterviewForm() {
           />
         )}
         <FormSelect
-          label="Type"
-          required
-          value={type}
-          onValueChange={(value) => setType(value as InterviewType)}
-          options={INTERVIEW_TYPES.map((t) => ({
-            value: t.value,
-            label: t.label,
-          }))}
-        />
-        <FormSelect
           label="Duration"
           required
           value={duration}
@@ -197,43 +182,41 @@ export function ScheduleInterviewForm() {
       <DateTimePicker value={scheduledAt} onChange={setScheduledAt} />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {!createMeetLink && (
-          <FormInput
-            label="Meeting link (optional)"
-            value={meetingLink}
-            onChange={(e) => setMeetingLink(e.target.value)}
-            placeholder="https://meet.google.com/…"
-            type="url"
-          />
-        )}
+      {!createMeetLink && (
         <FormInput
-          label="Location (optional)"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="Room 5, Innovation Hub"
+          label="Meeting link (optional)"
+          value={meetingLink}
+          onChange={(e) => setMeetingLink(e.target.value)}
+          placeholder="https://meet.google.com/…"
+          type="url"
         />
-      </div>
-
-      {type === InterviewType.VIDEO_CALL && (
-        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border/15 p-3 transition-colors hover:bg-secondary">
-          <Checkbox
-            checked={createMeetLink}
-            onCheckedChange={(checked) =>
-              setCreateMeetLink(checked === true)
-            }
-          />
-          <span className="min-w-0 space-y-0.5">
-            <span className="block text-sm font-medium">
-              Create a Google Meet link automatically
-            </span>
-            <span className="block text-xs text-muted-foreground">
-              Adds the interview to your Google Calendar and shares the Meet
-              link with participants. Requires Google Calendar to be connected
-              in Settings.
-            </span>
-          </span>
-        </label>
       )}
+      <FormInput
+        label="Location (optional)"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        placeholder="Room 5, Innovation Hub"
+      />
+    </div>
+
+    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border/15 p-3 transition-colors hover:bg-secondary">
+      <Checkbox
+        checked={createMeetLink}
+        onCheckedChange={(checked) =>
+          setCreateMeetLink(checked === true)
+        }
+      />
+      <span className="min-w-0 space-y-0.5">
+        <span className="block text-sm font-medium">
+          Create a Google Meet link automatically
+        </span>
+        <span className="block text-xs text-muted-foreground">
+          Adds the interview to your Google Calendar and shares the Meet
+          link with participants. Requires Google Calendar to be connected
+          in Settings.
+        </span>
+      </span>
+    </label>
 
       {hasApplication && applicants.length > 0 && (
         <div className="space-y-2">

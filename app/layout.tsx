@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { AuthenticatedChatFab } from "@/components/chat/authenticated-chat-fab";
+import { DynamicFavicon } from "@/components/layout/dynamic-favicon";
 
 import "./globals.css";
 
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={cn("h-full scroll-smooth antialiased", inter.variable)}>
       <body className="min-h-full bg-background text-foreground antialiased">
+        <DynamicFavicon />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

@@ -49,7 +49,6 @@ import {
 import {
   InterviewParty,
   InterviewStatus,
-  InterviewType,
   VideoProvider,
   type InterviewData,
 } from "@/types/api/interviews";
@@ -503,8 +502,7 @@ export function InterviewDetail({ id }: { id: string }) {
           )}
           {isClient && (isInvited || isScheduled) && (
             <>
-              {interview.type === InterviewType.VIDEO_CALL &&
-                !interview.meetingLink && (
+              {!interview.meetingLink && (
                   <Button
                     variant="outline"
                     onClick={generateMeetLink}

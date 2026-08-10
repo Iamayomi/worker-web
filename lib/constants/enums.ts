@@ -6,7 +6,6 @@ import {
 } from "@/types/api/jobs";
 import {
   InterviewStatus,
-  InterviewType,
   InterviewRsvpStatus,
 } from "@/types/api/interviews";
 
@@ -69,16 +68,6 @@ export const APPLICATION_STATUSES = [
   { value: ApplicationStatus.ACCEPTED, label: "Accepted" },
   { value: ApplicationStatus.REJECTED, label: "Rejected" },
   { value: ApplicationStatus.WITHDRAWN, label: "Withdrawn" },
-] as const;
-
-export const INTERVIEW_TYPES = [
-  { value: InterviewType.VIDEO_CALL, label: "Video call" },
-  { value: InterviewType.PHONE_CALL, label: "Phone call" },
-  { value: InterviewType.IN_PERSON, label: "In person" },
-  {
-    value: InterviewType.TECHNICAL_ASSESSMENT,
-    label: "Technical assessment",
-  },
 ] as const;
 
 export const INTERVIEW_STATUSES = [
