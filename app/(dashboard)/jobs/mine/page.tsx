@@ -15,7 +15,7 @@ import { useMyJobs, useDeleteJob } from "@/lib/hooks/use-jobs";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useAuth } from "@/lib/auth/auth-context";
 import { AccountType, UserRole } from "@/types/api/auth";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { buildUrl } from "@/lib/utils/build-url";
 import { fetchAllPages, assertSuccess } from "@/lib/utils/export-all";
 import { JOB_STATUSES } from "@/lib/constants/enums";
@@ -93,7 +93,7 @@ export default function MyJobsPage() {
 
   const fetchAllRows = async () => {
     const all = await fetchAllPages(async (p, l) => {
-      const res = await worker.auth.get<JobListData>(
+      const res = await api.auth.get<JobListData>(
         buildUrl("/jobs/mine", { status: status || undefined, page: p, limit: l })
       );
       assertSuccess(res);

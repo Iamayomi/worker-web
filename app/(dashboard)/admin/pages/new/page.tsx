@@ -42,8 +42,8 @@ export default function AdminPagesNewPage() {
           </Link>
           <h1 className="mt-2 text-2xl font-bold tracking-tight">New page</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Create a landing page for public routes like talent, community,
-            about or pricing.
+            Create a landing page for public routes like talent, about or
+            pricing.
           </p>
         </div>
 

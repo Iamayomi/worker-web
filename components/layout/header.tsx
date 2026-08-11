@@ -187,18 +187,6 @@ const navItems: NavItem[] = [
     cta: { label: "Explore talent", href: "/talent" },
   },
   {
-    label: "Community",
-    tagline: "Connect with peers",
-    description: "Join a global network of professionals across every industry.",
-    columns: [
-      {
-        title: "Connect",
-        links: [{ label: "Community", href: "/community" }],
-      },
-    ],
-    cta: { label: "Join the community", href: "/community" },
-  },
-  {
     label: "Resources",
     tagline: "Guides and insights",
     description: "Everything you need to hire better or land your next opportunity.",

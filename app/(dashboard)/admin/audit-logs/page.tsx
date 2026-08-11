@@ -13,7 +13,7 @@ import { TableSkeleton } from "@/components/shared/skeletons";
 import { Pagination } from "@/components/shared/pagination";
 import { ExportCsvButton } from "@/components/shared/export-csv-button";
 import { ScrollText } from "lucide-react";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { fetchAllPages, assertSuccess } from "@/lib/utils/export-all";
 import type { ListAuditLogsData } from "@/lib/hooks/use-safety";
 
@@ -83,7 +83,7 @@ export default function AdminAuditLogsPage() {
       if (targetType) params.set("targetType", targetType);
       if (severity) params.set("severity", severity);
       if (actorEmail.trim()) params.set("actorEmail", actorEmail.trim());
-      const res = await worker.auth.get<ListAuditLogsData>(`/safety/audit-logs?${params}`);
+      const res = await api.auth.get<ListAuditLogsData>(`/safety/audit-logs?${params}`);
       assertSuccess(res);
       return {
         items: res.data!.logs ?? [],

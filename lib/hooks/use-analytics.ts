@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { queryKeys } from "@/lib/api/query-keys";
 
 export type AnalyticsEventType = "profile_view" | "resume_download" | "job_view";
@@ -68,7 +68,7 @@ export function useTalentAnalytics(days?: number) {
   return useQuery({
     queryKey: queryKeys.analytics.talent(days),
     queryFn: async () => {
-      const res = await worker.auth.get<TalentAnalyticsData>(
+      const res = await api.auth.get<TalentAnalyticsData>(
         `/analytics/talent${days ? `?days=${days}` : ""}`
       );
       if (!res.success)
@@ -82,7 +82,7 @@ export function useClientAnalytics(days?: number) {
   return useQuery({
     queryKey: queryKeys.analytics.client(days),
     queryFn: async () => {
-      const res = await worker.auth.get<ClientAnalyticsData>(
+      const res = await api.auth.get<ClientAnalyticsData>(
         `/analytics/client${days ? `?days=${days}` : ""}`
       );
       if (!res.success)
@@ -100,7 +100,7 @@ export function useCreateHireRating() {
       rating: number;
       review?: string;
     }) => {
-      const res = await worker.auth.post<{ rating: number }>(
+      const res = await api.auth.post<{ rating: number }>(
         "/analytics/hire-ratings",
         data
       );
@@ -118,7 +118,7 @@ export function useAnalyticsPreferences() {
   return useQuery({
     queryKey: queryKeys.analytics.preferences(),
     queryFn: async () => {
-      const res = await worker.auth.get<AnalyticsPreferencesData>(
+      const res = await api.auth.get<AnalyticsPreferencesData>(
         "/analytics/preferences"
       );
       if (!res.success)
@@ -132,7 +132,7 @@ export function useUpdateAnalyticsPreferences() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (weeklyEmailOptIn: boolean) => {
-      const res = await worker.auth.patch<AnalyticsPreferencesData>(
+      const res = await api.auth.patch<AnalyticsPreferencesData>(
         "/analytics/preferences",
         { weeklyEmailOptIn }
       );
@@ -155,7 +155,7 @@ export function useRecordAnalyticsEvent() {
       targetType: AnalyticsTargetType;
       targetId: string;
     }) => {
-      const res = await worker.post<RecordAnalyticsEventData>(
+      const res = await api.post<RecordAnalyticsEventData>(
         "/analytics/events",
         data
       );

@@ -129,6 +129,34 @@ export function DashboardHeaderSkeleton() {
   );
 }
 
+export function TalentHomeSkeleton() {
+  return (
+    <div className="mx-auto max-w-6xl space-y-10">
+      <div className="rounded-2xl border border-border/15 bg-gradient-to-br from-primary/10 via-transparent to-transparent p-8 sm:p-12">
+        <Skeleton className="h-9 w-72 max-w-full" />
+        <Skeleton className="mt-3 h-4 w-96 max-w-full" />
+        <div className="mt-6 max-w-lg">
+          <Skeleton className="h-12 w-full rounded-lg" />
+        </div>
+        <div className="mt-6">
+          <Skeleton className="h-10 w-36 rounded-md" />
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-44 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SectionSkeleton({ className }: { className?: string }) {
   return (
     <div className={cn("space-y-4", className)}>

@@ -48,32 +48,6 @@ export const DEFAULT_PAGE_CONTENT: Record<string, Page> = {
       },
     ]
   ),
-  community: makeDefault(
-    "community",
-    "Community",
-    "Join a global network of professionals",
-    "Connect with peers, share insights and grow together. Forums, events, mentorship and partnerships for every industry.",
-    [
-      {
-        heading: "Connect and collaborate",
-        body: "Engage with professionals across every industry. Share knowledge, find mentors and build meaningful partnerships.",
-        bullets: [
-          "Industry forums and discussions",
-          "Live events and webinars",
-          "1-on-1 mentorship",
-        ],
-      },
-      {
-        heading: "Grow with the community",
-        body: "Whether you are just starting out or scaling your team, the Worker community has your back.",
-        bullets: [
-          "Networking with global peers",
-          "Exclusive career resources",
-          "Partner opportunities",
-        ],
-      },
-    ]
-  ),
   about: makeDefault(
     "about",
     "About",

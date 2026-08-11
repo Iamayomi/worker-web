@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { queryKeys } from "@/lib/api/query-keys";
 import type {
   Application,
@@ -41,7 +41,7 @@ export function useJobs(params: JobQueryParams = {}) {
   return useQuery({
     queryKey: queryKeys.jobs.list(params),
     queryFn: async () => {
-      const res = await worker.get<JobListData>(buildUrl("/jobs", params));
+      const res = await api.get<JobListData>(buildUrl("/jobs", params));
       if (!res.success) throw new Error(res.message || "Failed to load jobs");
       return res.data!;
     },
@@ -52,7 +52,7 @@ export function useJob(id: string) {
   return useQuery({
     queryKey: queryKeys.jobs.detail(id),
     queryFn: async () => {
-      const res = await worker.auth.get<Job>(`/jobs/${id}`);
+      const res = await api.auth.get<Job>(`/jobs/${id}`);
       if (!res.success) throw new Error(res.message || "Failed to load job");
       return res.data!;
     },
@@ -68,7 +68,7 @@ export function useAdminJob(id: string) {
   return useQuery({
     queryKey: ["jobs", "admin-detail", id],
     queryFn: async () => {
-      const res = await worker.auth.get<AdminJobDetail>(`/jobs/admin/${id}`);
+      const res = await api.auth.get<AdminJobDetail>(`/jobs/admin/${id}`);
       if (!res.success) throw new Error(res.message || "Failed to load job");
       return res.data!;
     },
@@ -79,7 +79,7 @@ export function useMyJobs(params: MyJobsQueryParams = {}) {
   return useQuery({
     queryKey: queryKeys.jobs.mine(params),
     queryFn: async () => {
-      const res = await worker.auth.get<JobListData>(
+      const res = await api.auth.get<JobListData>(
         buildUrl("/jobs/mine", params)
       );
       if (!res.success) throw new Error(res.message || "Failed to load jobs");
@@ -100,7 +100,7 @@ export function useJobAnalytics(
   return useQuery({
     queryKey: queryKeys.jobs.analytics(params),
     queryFn: async () => {
-      const res = await worker.auth.get<JobAnalyticsData>(
+      const res = await api.auth.get<JobAnalyticsData>(
         `/jobs/analytics${qs ? `?${qs}` : ""}`
       );
       if (!res.success)
@@ -114,7 +114,7 @@ export function useRecommendedJobs(limit = 10) {
   return useInfiniteQuery({
     queryKey: queryKeys.jobs.recommendations(limit),
     queryFn: async ({ pageParam }) => {
-      const res = await worker.auth.get<JobListData>(
+      const res = await api.auth.get<JobListData>(
         `/jobs/recommendations?limit=${limit}&page=${pageParam}`
       );
       if (!res.success)
@@ -133,8 +133,8 @@ export function useCreateJob() {
   return useMutation({
     mutationFn: async (data: CreateJobInput) => {
       const res = data.signup
-        ? await worker.post<CreateJobData>("/jobs", data)
-        : await worker.auth.post<CreateJobData>("/jobs", data);
+        ? await api.post<CreateJobData>("/jobs", data)
+        : await api.auth.post<CreateJobData>("/jobs", data);
       if (!res.success) throw new Error(res.message || "Failed to create job");
       return res.data!;
     },
@@ -149,7 +149,7 @@ export function useUpdateJob(id: string) {
 
   return useMutation({
     mutationFn: async (data: UpdateJobInput) => {
-      const res = await worker.auth.patch<Job>(`/jobs/${id}`, data);
+      const res = await api.auth.patch<Job>(`/jobs/${id}`, data);
       if (!res.success) throw new Error(res.message || "Failed to update job");
       return res.data!;
     },
@@ -164,7 +164,7 @@ export function useDeleteJob() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete<{ message: string }>(`/jobs/${id}`);
+      const res = await api.auth.delete<{ message: string }>(`/jobs/${id}`);
       if (!res.success) throw new Error(res.message || "Failed to delete job");
       return res.data!;
     },
@@ -214,7 +214,7 @@ export function useAllJobs(params: {
       const query = new URLSearchParams({ page: String(page), limit: String(limit) });
       if (params.query) query.set("query", params.query);
       if (params.status && params.status !== "all") query.set("status", params.status);
-      const res = await worker.auth.get<AllJobsData>(`/jobs/admin/all?${query}`);
+      const res = await api.auth.get<AllJobsData>(`/jobs/admin/all?${query}`);
       if (!res.success) throw new Error(res.message || "Failed to load jobs");
       return res.data!;
     },
@@ -226,7 +226,7 @@ export function useDeleteJobAdmin() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete<{ message: string }>(`/jobs/admin/${id}`);
+      const res = await api.auth.delete<{ message: string }>(`/jobs/admin/${id}`);
       if (!res.success) throw new Error(res.message || "Failed to delete job");
       return res.data!;
     },
@@ -243,8 +243,8 @@ export function useApplyJob() {
   return useMutation({
     mutationFn: async ({ jobId, data }: { jobId: string; data: ApplyJobInput }) => {
       const res = data.signup
-        ? await worker.post<ApplyJobData>(`/jobs/${jobId}/apply`, data)
-        : await worker.auth.post<ApplyJobData>(`/jobs/${jobId}/apply`, data);
+        ? await api.post<ApplyJobData>(`/jobs/${jobId}/apply`, data)
+        : await api.auth.post<ApplyJobData>(`/jobs/${jobId}/apply`, data);
       if (!res.success) throw new Error(res.message || "Failed to apply");
       return res.data!;
     },
@@ -258,7 +258,7 @@ export function useSavedJobIds(enabled: boolean) {
   return useQuery({
     queryKey: queryKeys.savedJobs.ids(),
     queryFn: async () => {
-      const res = await worker.auth.get<SavedJobIdsData>("/saved-jobs/ids");
+      const res = await api.auth.get<SavedJobIdsData>("/saved-jobs/ids");
       if (!res.success)
         throw new Error(res.message || "Failed to load saved job ids");
       return res.data!;
@@ -277,7 +277,7 @@ export function useSavedJobs(
   return useQuery({
     queryKey: queryKeys.savedJobs.list({ page, limit }),
     queryFn: async () => {
-      const res = await worker.auth.get<ListSavedJobsData>(
+      const res = await api.auth.get<ListSavedJobsData>(
         `/saved-jobs?page=${page}&limit=${limit}`
       );
       if (!res.success)
@@ -293,7 +293,7 @@ export function useSaveJob() {
 
   return useMutation({
     mutationFn: async (jobId: string) => {
-      const res = await worker.auth.post<{ saved: boolean }>(
+      const res = await api.auth.post<{ saved: boolean }>(
         `/saved-jobs/${jobId}`
       );
       if (!res.success) throw new Error(res.message || "Failed to save job");
@@ -310,7 +310,7 @@ export function useUnsaveJob() {
 
   return useMutation({
     mutationFn: async (jobId: string) => {
-      const res = await worker.auth.delete<{ saved: boolean }>(
+      const res = await api.auth.delete<{ saved: boolean }>(
         `/saved-jobs/${jobId}`
       );
       if (!res.success) throw new Error(res.message || "Failed to unsave job");
@@ -326,7 +326,7 @@ export function useUploadCv() {
   return useMutation({    mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await worker.post<{ url: string; publicId: string }>(
+      const res = await api.post<{ url: string; publicId: string }>(
         "/upload/cv",
         formData
       );
@@ -340,7 +340,7 @@ export function useApplication(id: string) {
   return useQuery({
     queryKey: queryKeys.applications.detail(id),
     queryFn: async () => {
-      const res = await worker.auth.get<Application>(`/applications/${id}`);
+      const res = await api.auth.get<Application>(`/applications/${id}`);
       if (!res.success)
         throw new Error(res.message || "Failed to load application");
       return res.data!;
@@ -368,7 +368,7 @@ export function useMyApplications(params: {
         limit: String(limit),
       });
       if (params.status) query.set("status", params.status);
-      const res = await worker.auth.get<ApplicationListData>(
+      const res = await api.auth.get<ApplicationListData>(
         `/applications?${query}`
       );
       if (!res.success)
@@ -382,7 +382,7 @@ export function useAdminApplication(id: string) {
   return useQuery({
     queryKey: ["applications", "admin-detail", id],
     queryFn: async () => {
-      const res = await worker.auth.get<Application>(
+      const res = await api.auth.get<Application>(
         `/applications/admin/${id}`
       );
       if (!res.success)
@@ -400,7 +400,7 @@ export function useApplicationAnalytics(params: { days?: number } = {}) {
   return useQuery({
     queryKey: queryKeys.applications.analytics(params),
     queryFn: async () => {
-      const res = await worker.auth.get<ApplicationAnalyticsData>(
+      const res = await api.auth.get<ApplicationAnalyticsData>(
         `/applications/analytics${qs ? `?${qs}` : ""}`
       );
       if (!res.success)
@@ -457,7 +457,7 @@ export function useAllApplications(params: {
       if (params.accountType && params.accountType !== "all")
         query.set("accountType", params.accountType);
       if (params.query) query.set("query", params.query);
-      const res = await worker.auth.get<AllApplicationsData>(
+      const res = await api.auth.get<AllApplicationsData>(
         `/applications/admin/all?${query}`
       );
       if (!res.success)
@@ -476,7 +476,7 @@ export function useJobApplications(
     queryKey: queryKeys.applications.byJob(jobId, params),
     enabled: Boolean(jobId) && enabled,
     queryFn: async () => {
-      const res = await worker.auth.get<ApplicationListData>(
+      const res = await api.auth.get<ApplicationListData>(
         buildUrl(`/jobs/${jobId}/applications`, params)
       );
       if (!res.success)
@@ -501,7 +501,7 @@ export function useUpdateApplicationStatus() {
         rejectionReason?: string;
       };
     }) => {
-      const res = await worker.auth.patch<Application>(
+      const res = await api.auth.patch<Application>(
         `/applications/${id}/status`,
         data
       );
@@ -530,7 +530,7 @@ export function useUpdateApplicationStatusAdmin() {
         rejectionReason?: string;
       };
     }) => {
-      const res = await worker.auth.patch<Application>(
+      const res = await api.auth.patch<Application>(
         `/applications/admin/${id}/status`,
         data
       );
@@ -549,7 +549,7 @@ export function useAcceptOffer() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.post<Application>(
+      const res = await api.auth.post<Application>(
         `/applications/${id}/accept`
       );
       if (!res.success)
@@ -567,7 +567,7 @@ export function useDeleteApplicationAdmin() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete<null>(
+      const res = await api.auth.delete<null>(
         `/applications/admin/${id}`
       );
       if (!res.success)

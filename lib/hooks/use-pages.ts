@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import {
   type Page,
   type PageListData,
@@ -13,7 +13,7 @@ export function usePageBySlug(slug: string | undefined) {
     queryKey: queryKeys.pages.bySlug(slug ?? ""),
     enabled: !!slug,
     queryFn: async () => {
-      const res = await worker.get<Page>(`/content/pages/by-slug/${slug}`);
+      const res = await api.get<Page>(`/content/pages/by-slug/${slug}`);
       if (!res.success) throw new Error(res.message || "Failed to load page");
       return res.data!;
     },
@@ -25,7 +25,7 @@ export function useAdminPages() {
   return useQuery({
     queryKey: queryKeys.pages.adminList(),
     queryFn: async () => {
-      const res = await worker.auth.get<PageListData>(
+      const res = await api.auth.get<PageListData>(
         "/content/pages/admin?limit=100"
       );
       if (!res.success) throw new Error(res.message || "Failed to load pages");
@@ -39,7 +39,7 @@ export function useAdminPage(id: string | undefined) {
     queryKey: queryKeys.pages.adminDetail(id ?? ""),
     enabled: !!id,
     queryFn: async () => {
-      const res = await worker.auth.get<Page>(`/content/pages/${id}`);
+      const res = await api.auth.get<Page>(`/content/pages/${id}`);
       if (!res.success) throw new Error(res.message || "Failed to load page");
       return res.data!;
     },
@@ -53,7 +53,7 @@ export function usePublicPages(params: { page?: number; limit?: number } = {}) {
   return useQuery({
     queryKey: queryKeys.pages.list({ page, limit }),
     queryFn: async () => {
-      const res = await worker.get<PageListData>(
+      const res = await api.get<PageListData>(
         `/content/pages?page=${page}&limit=${limit}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load pages");
@@ -66,7 +66,7 @@ export function useCreatePage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreatePageInput) => {
-      const res = await worker.auth.post<Page>("/content/pages", data);
+      const res = await api.auth.post<Page>("/content/pages", data);
       if (!res.success) throw new Error(res.message || "Failed to create page");
       return res.data!;
     },
@@ -81,7 +81,7 @@ export function useUpdatePage() {
   return useMutation({
     mutationFn: async (data: UpdatePageInput & { id: string }) => {
       const { id, ...rest } = data;
-      const res = await worker.auth.patch<Page>(`/content/pages/${id}`, rest);
+      const res = await api.auth.patch<Page>(`/content/pages/${id}`, rest);
       if (!res.success) throw new Error(res.message || "Failed to update page");
       return res.data!;
     },
@@ -95,7 +95,7 @@ export function useDeletePage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete<{ message: string }>(
+      const res = await api.auth.delete<{ message: string }>(
         `/content/pages/${id}`
       );
       if (!res.success) throw new Error(res.message || "Failed to delete page");

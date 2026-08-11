@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import {
   type Post,
   type PostListData,
@@ -26,7 +26,7 @@ export function usePosts(params?: PostQueryParams) {
   return useQuery({
     queryKey: queryKeys.content.list(params ?? {}),
     queryFn: async () => {
-      const res = await worker.get<PostListData>(
+      const res = await api.get<PostListData>(
         `/content/posts${buildQuery(params ?? {})}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load posts");
@@ -40,7 +40,7 @@ export function usePost(slug: string | undefined) {
     queryKey: queryKeys.content.detail(slug ?? ""),
     enabled: !!slug,
     queryFn: async () => {
-      const res = await worker.get<Post>(`/content/posts/by-slug/${slug}`);
+      const res = await api.get<Post>(`/content/posts/by-slug/${slug}`);
       if (!res.success) throw new Error(res.message || "Failed to load post");
       return res.data!;
     },
@@ -51,7 +51,7 @@ export function useAdminPosts(params?: PostQueryParams) {
   return useQuery({
     queryKey: queryKeys.content.adminList(params ?? {}),
     queryFn: async () => {
-      const res = await worker.auth.get<PostListData>(
+      const res = await api.auth.get<PostListData>(
         `/content/posts/admin${buildQuery(params ?? {})}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load posts");
@@ -65,7 +65,7 @@ export function useAdminPost(id: string | undefined) {
     queryKey: queryKeys.content.adminDetail(id ?? ""),
     enabled: !!id,
     queryFn: async () => {
-      const res = await worker.auth.get<Post>(`/content/posts/${id}`);
+      const res = await api.auth.get<Post>(`/content/posts/${id}`);
       if (!res.success) throw new Error(res.message || "Failed to load post");
       return res.data!;
     },
@@ -76,7 +76,7 @@ export function useCreatePost() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreatePostInput) => {
-      const res = await worker.auth.post<Post>("/content/posts", data);
+      const res = await api.auth.post<Post>("/content/posts", data);
       if (!res.success) throw new Error(res.message || "Failed to create post");
       return res.data!;
     },
@@ -91,7 +91,7 @@ export function useUpdatePost() {
   return useMutation({
     mutationFn: async (data: UpdatePostInput & { id: string }) => {
       const { id, ...rest } = data;
-      const res = await worker.auth.patch<Post>(
+      const res = await api.auth.patch<Post>(
         `/content/posts/${id}`,
         rest
       );
@@ -108,7 +108,7 @@ export function useDeletePost() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete<{ message: string }>(
+      const res = await api.auth.delete<{ message: string }>(
         `/content/posts/${id}`
       );
       if (!res.success) throw new Error(res.message || "Failed to delete post");

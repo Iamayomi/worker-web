@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AxiosError } from "axios";
 import { LoaderCircle, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { errorMessage } from "@/lib/api/api-client";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Button } from "@/components/ui/button";
@@ -48,17 +48,6 @@ import {
 import { getDashboardRoute } from "@/lib/utils";
 
 const GOOGLE_PROFILE_KEY = "worker_google_profile";
-
-const errorMessage = (error: unknown, fallback: string) => {
-  if (error instanceof AxiosError) {
-    return (
-      (error.response?.data?.message as string) ||
-      (error.response?.data?.error?.message as string) ||
-      fallback
-    );
-  }
-  return fallback;
-};
 
 const talentSchema = z.object({
   firstName: z.string().min(1, "First name is required"),

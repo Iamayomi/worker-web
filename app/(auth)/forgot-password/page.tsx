@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
+import { errorMessage } from "@/lib/api/api-client";
 import { z } from "zod";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
@@ -49,11 +49,7 @@ export default function ForgotPasswordPage() {
         );
       },
       onError: (error) => {
-        const message =
-          error instanceof AxiosError
-            ? (error.response?.data?.message as string) || "Something went wrong"
-            : "Something went wrong";
-        toast.error(message);
+        toast.error(errorMessage(error, "Something went wrong"));
       },
     });
   });

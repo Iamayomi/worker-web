@@ -26,7 +26,7 @@ import { Footer } from "@/components/layout/footer";
 import { WorldMap } from "@/components/world-map";
 import { AppleIcon } from "@/components/icons/apple-icon";
 import { GooglePlayIcon } from "@/components/icons/google-play-icon";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import type { JobListData, Job as ApiJob } from "@/types/api/jobs";
 import type { Post as ApiPost, PostListData } from "@/types/api/posts";
 import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
@@ -230,8 +230,8 @@ export default function LandingPage() {
     (async () => {
       try {
         const [jobsRes, postsRes] = await Promise.allSettled([
-          worker.get<JobListData>("/jobs?limit=50"),
-          worker.get<PostListData>("/content/posts?limit=3"),
+          api.get<JobListData>("/jobs?limit=50"),
+          api.get<PostListData>("/content/posts?limit=3"),
         ]);
         if (!cancelled) {
           if (

@@ -103,27 +103,4 @@ export const queryKeys = {
     ready: () => ["health", "ready"] as const,
     metrics: () => ["health", "metrics"] as const,
   },
-  community: {
-    all: () => ["community"] as const,
-    list: (params: object) => ["community", "list", params] as const,
-    mine: (params: object) => ["community", "mine", params] as const,
-    detail: (id: string) => ["community", "detail", id] as const,
-    members: (communityId: string, params: object) =>
-      ["community", "members", communityId, params] as const,
-    posts: (communityId: string, params: object) =>
-      ["community", "posts", communityId, params] as const,
-    post: (communityId: string, postId: string) =>
-      ["community", "posts", communityId, postId] as const,
-    comments: (postId: string, params: object) =>
-      ["community", "comments", postId, params] as const,
-    events: (communityId: string, params: object) =>
-      ["community", "events", communityId, params] as const,
-    event: (communityId: string, eventId: string) =>
-      ["community", "events", communityId, eventId] as const,
-    rsvps: (eventId: string, params: object) =>
-      ["community", "events", eventId, "rsvps", params] as const,
-    feed: (params: object) => ["community", "feed", params] as const,
-    trending: (params: object) =>
-      ["community", "trending", params] as const,
-  },
 };

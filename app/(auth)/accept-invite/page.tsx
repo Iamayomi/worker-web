@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, use, type FormEvent } from "react";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export default function AcceptInvitePage(props: {
     }
 
     setLoading(true);
-    const res = await worker.post("/auth/accept-invite", {
+    const res = await api.post("/auth/accept-invite", {
       token: searchParams.token,
       email: email.trim(),
       first_name: firstName,

@@ -3,11 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 
 import { useGoogleAuth } from "@/hooks/api/useAuth";
-import { worker } from "@/lib/api/worker";
+import { api, errorMessage } from "@/lib/api/api-client";
 import { AccountType } from "@/types/api/auth";
 import { GoogleIcon } from "@/components/icons/google-icon";
 import { Button } from "@/components/ui/button";
@@ -119,7 +118,7 @@ export function GoogleSignInButton({
     }
     setPasswordLoading(true);
     try {
-      const res = await worker.auth.post("/auth/change-password", {
+      const res = await api.auth.post("/auth/change-password", {
         new_password: password,
       });
       if (!res.success) {
@@ -178,13 +177,7 @@ export function GoogleSignInButton({
           }
         },
         onError: (error) => {
-          const message =
-            error instanceof AxiosError
-              ? (error.response?.data?.message as string) ||
-                (error.response?.data?.error?.message as string) ||
-                "Google sign-in failed"
-              : "Google sign-in failed";
-          toast.error(message);
+          toast.error(errorMessage(error, "Google sign-in failed"));
         },
       }
     );

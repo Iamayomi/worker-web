@@ -71,8 +71,7 @@ export default function AdminPagesPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Landing pages</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage content for public pages like talent, community, about and
-              pricing.
+              Manage content for public pages like talent, about and pricing.
             </p>
           </div>
           <div className="flex items-center gap-2">

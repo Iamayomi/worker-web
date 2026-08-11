@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { chatSocket } from "@/lib/chat/socket";
 import type {
@@ -19,7 +19,7 @@ export function useConversations() {
 	return useQuery({
 		queryKey: queryKeys.chat.conversations({}),
 		queryFn: async () => {
-			const res = await worker.auth.get<ChatConversationsData>(
+			const res = await api.auth.get<ChatConversationsData>(
 				"/chat/conversations",
 			);
 			if (!res.success)
@@ -33,7 +33,7 @@ export function useConversation(id: string) {
 	return useQuery({
 		queryKey: queryKeys.chat.conversation(id),
 		queryFn: async () => {
-			const res = await worker.auth.get<ChatConversation>(
+			const res = await api.auth.get<ChatConversation>(
 				`/chat/conversations/${id}`,
 			);
 			if (!res.success)
@@ -48,7 +48,7 @@ export function useMessages(conversationId: string) {
 	return useQuery({
 		queryKey: queryKeys.chat.messages(conversationId),
 		queryFn: async () => {
-			const res = await worker.auth.get<ChatMessagesData>(
+			const res = await api.auth.get<ChatMessagesData>(
 				`/chat/conversations/${conversationId}/messages`,
 			);
 			if (!res.success)
@@ -68,7 +68,7 @@ export function useLoadMoreMessages(conversationId: string) {
 	const qc = useQueryClient();
 	return useMutation({
 		mutationFn: async (beforeId: string) => {
-			const res = await worker.auth.get<ChatMessagesData>(
+			const res = await api.auth.get<ChatMessagesData>(
 				`/chat/conversations/${conversationId}/messages?beforeId=${beforeId}`,
 			);
 			if (!res.success)
@@ -100,7 +100,7 @@ export function useSendMessage(conversationId: string) {
 	const qc = useQueryClient();
 	return useMutation({
 		mutationFn: async (input: SendMessageInput) => {
-			const res = await worker.auth.post<ChatMessage>(
+			const res = await api.auth.post<ChatMessage>(
 				`/chat/conversations/${conversationId}/messages`,
 				input,
 			);
@@ -122,7 +122,7 @@ export function useUploadChatFile() {
 		mutationFn: async (file: File) => {
 			const formData = new FormData();
 			formData.append("file", file);
-			const res = await worker.auth.upload<ChatAttachment>(
+			const res = await api.auth.upload<ChatAttachment>(
 				"/upload/chat",
 				formData,
 			);
@@ -137,7 +137,7 @@ export function useMarkConversationRead(conversationId: string) {
 	const qc = useQueryClient();
 	return useMutation({
 		mutationFn: async () => {
-			const res = await worker.auth.patch(
+			const res = await api.auth.patch(
 				`/chat/conversations/${conversationId}/read`,
 			);
 			if (!res.success) throw new Error(res.message || "Failed to mark as read");
@@ -162,7 +162,7 @@ export function useCreateConversation() {
 	const qc = useQueryClient();
 	return useMutation({
 		mutationFn: async (input: CreateConversationInput) => {
-			const res = await worker.auth.post<ChatConversation>(
+			const res = await api.auth.post<ChatConversation>(
 				"/chat/conversations",
 				input,
 			);
@@ -183,7 +183,7 @@ export function usePeopleSearch(query: string) {
 		enabled: trimmed.length >= 2,
 		retry: false,
 		queryFn: async () => {
-			const res = await worker.auth.get<SearchPeopleData>(
+			const res = await api.auth.get<SearchPeopleData>(
 				`/chat/people/search?q=${encodeURIComponent(trimmed)}`,
 			);
 			if (!res.success)
@@ -197,7 +197,7 @@ export function useChatUnreadCount() {
 	return useQuery({
 		queryKey: queryKeys.chat.unreadCount(),
 		queryFn: async () => {
-			const res = await worker.auth.get<ChatUnreadCount>(
+			const res = await api.auth.get<ChatUnreadCount>(
 				"/chat/conversations/unread-count",
 			);
 			if (!res.success) return { total: 0 };

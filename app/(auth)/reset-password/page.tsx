@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
+import { errorMessage } from "@/lib/api/api-client";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Button } from "@/components/ui/button";
@@ -73,11 +73,7 @@ function ResetPasswordForm() {
           setTimer(59);
         },
         onError: (error) => {
-          const message =
-            error instanceof AxiosError
-              ? (error.response?.data?.message as string) || "Failed to resend code"
-              : "Failed to resend code";
-          toast.error(message);
+          toast.error(errorMessage(error, "Failed to resend code"));
         },
       }
     );
@@ -101,11 +97,7 @@ function ResetPasswordForm() {
           router.push("/login");
         },
         onError: (error) => {
-          const message =
-            error instanceof AxiosError
-              ? (error.response?.data?.message as string) || "Failed to reset password"
-              : "Failed to reset password";
-          toast.error(message);
+          toast.error(errorMessage(error, "Failed to reset password"));
         },
       }
     );

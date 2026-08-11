@@ -19,8 +19,6 @@ function faviconForPath(pathname: string): FaviconSpec {
     return { letter: "I", accent: "#10B981" };
   if (path.startsWith("/talent"))
     return { letter: "T", accent: "#8B5CF6" };
-  if (path.startsWith("/community"))
-    return { letter: "C", accent: "#F59E0B" };
   if (path.startsWith("/home") || path.startsWith("/dashboard"))
     return { letter: "D", accent: "#06B6D4" };
   if (path.startsWith("/profile"))

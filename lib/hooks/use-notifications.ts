@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { chatSocket } from "@/lib/chat/socket";
 import type {
   NotificationData,
@@ -15,7 +15,7 @@ export function useNotifications() {
   return useQuery({
     queryKey: queryKeys.notifications.list(),
     queryFn: async () => {
-      const res = await worker.auth.get<{ items: NotificationData[] }>("/notifications");
+      const res = await api.auth.get<{ items: NotificationData[] }>("/notifications");
       if (!res.success) throw new Error(res.message || "Failed to load notifications");
       return res.data?.items ?? [];
     },
@@ -41,7 +41,7 @@ export function useUnreadCount() {
   return useQuery({
     queryKey: queryKeys.notifications.unreadCount(),
     queryFn: async () => {
-      const res = await worker.auth.get<{ unread_count: number }>(
+      const res = await api.auth.get<{ unread_count: number }>(
         "/notifications/unread-count"
       );
       if (!res.success) return 0;
@@ -55,7 +55,7 @@ export function useMarkRead(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const res = await worker.auth.patch(`/notifications/${id}/read`);
+      const res = await api.auth.patch(`/notifications/${id}/read`);
       if (!res.success) throw new Error("Failed to mark as read");
     },
     onSuccess: () => {
@@ -69,7 +69,7 @@ export function useMarkAllRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const res = await worker.auth.patch("/notifications/read-all");
+      const res = await api.auth.patch("/notifications/read-all");
       if (!res.success) throw new Error("Failed to mark all as read");
     },
     onSuccess: () => {
@@ -83,7 +83,7 @@ export function useNotificationPreferences() {
   return useQuery({
     queryKey: queryKeys.notifications.preferences(),
     queryFn: async () => {
-      const res = await worker.auth.get<{ preferences: NotificationPreferences }>(
+      const res = await api.auth.get<{ preferences: NotificationPreferences }>(
         "/notifications/preferences"
       );
       if (!res.success) throw new Error(res.message || "Failed to load notification preferences");
@@ -96,7 +96,7 @@ export function useUpdateNotificationPreferences() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (preferences: NotificationPreferences) => {
-      const res = await worker.auth.patch<{ preferences: NotificationPreferences }>(
+      const res = await api.auth.patch<{ preferences: NotificationPreferences }>(
         "/notifications/preferences",
         preferences
       );
@@ -135,7 +135,7 @@ export function useAdminNotifications(
     queryKey: queryKeys.notifications.adminList(params),
     enabled,
     queryFn: async () => {
-      const res = await worker.auth.get<{
+      const res = await api.auth.get<{
         items: AdminNotificationItem[];
         total: number;
       }>(`/notifications/admin/all${qs ? `?${qs}` : ""}`);
@@ -150,7 +150,7 @@ export function useAdminNotificationStats() {
   return useQuery({
     queryKey: queryKeys.notifications.adminStats(),
     queryFn: async () => {
-      const res = await worker.auth.get<AdminNotificationStats>(
+      const res = await api.auth.get<AdminNotificationStats>(
         "/notifications/admin/stats"
       );
       if (!res.success) throw new Error(res.message || "Failed to load stats");
@@ -163,7 +163,7 @@ export function useSendNotification() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: AdminSendNotificationInput) => {
-      const res = await worker.auth.post<{ recipientCount: number }>(
+      const res = await api.auth.post<{ recipientCount: number }>(
         "/notifications/admin/send",
         input
       );
@@ -181,7 +181,7 @@ export function useDeleteNotification() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete(`/notifications/admin/${id}`);
+      const res = await api.auth.delete(`/notifications/admin/${id}`);
       if (!res.success) throw new Error(res.message || "Failed to delete notification");
     },
     onSuccess: () => {

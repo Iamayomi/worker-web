@@ -22,7 +22,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCreateConversation } from "@/lib/hooks/use-chat";
 import type { JobListData } from "@/types/api/jobs";
@@ -90,10 +90,10 @@ export function GlobalSearch({ className }: { className?: string }) {
       const enc = encodeURIComponent(q);
       try {
         const [jobsRes, postsRes, peopleRes] = await Promise.all([
-          worker.get<JobListData>(`/jobs?query=${enc}&limit=5`),
-          worker.get<PostListData>(`/content/posts?query=${enc}&limit=5`),
+          api.get<JobListData>(`/jobs?query=${enc}&limit=5`),
+          api.get<PostListData>(`/content/posts?query=${enc}&limit=5`),
           isAuthenticated
-            ? worker.auth.get<{ items: SearchPeopleItem[] }>(
+            ? api.auth.get<{ items: SearchPeopleItem[] }>(
                 `/chat/people/search?q=${enc}`,
               )
             : Promise.resolve(null),

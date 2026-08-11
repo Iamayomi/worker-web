@@ -9,7 +9,7 @@ import {
   type AdminApplicationRow,
   type AllApplicationsData,
 } from "@/lib/hooks/use-jobs";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { fetchAllPages, assertSuccess } from "@/lib/utils/export-all";
 import { ACCOUNT_TYPE_LABELS } from "@/lib/constants/enums";
 import { APPLICATION_STATUS } from "@/lib/constants/status";
@@ -138,7 +138,7 @@ export default function ManageApplicationsPage() {
       if (status !== "all") params.set("status", status);
       if (accountType !== "all") params.set("accountType", accountType);
       if (query.trim()) params.set("query", query.trim());
-      const res = await worker.auth.get<AllApplicationsData>(
+      const res = await api.auth.get<AllApplicationsData>(
         `/applications/admin/all?${params}`
       );
       assertSuccess(res);

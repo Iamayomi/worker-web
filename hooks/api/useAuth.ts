@@ -1,25 +1,45 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authService } from "@/services/auth.service";
+import { api, ApiError, setTokens, clearTokens } from "@/lib/api/api-client";
 import { useAuthStore } from "@/store/authStore";
-import { setTokens, clearTokens } from "@/lib/api/worker";
+import type { IApiResponse } from "@/lib/auth/types";
 import type {
   RegisterTalentDto,
+  RegisterTalentData,
   RegisterClientDto,
+  RegisterClientData,
   LoginDto,
+  LoginData,
   GoogleAuthDto,
+  GoogleAuthData,
   CompleteTalentRegistrationDto,
+  CompleteTalentRegistrationData,
   CompleteClientRegistrationDto,
+  CompleteClientRegistrationData,
   ForgotPasswordDto,
+  ForgotPasswordData,
   ResetPasswordDto,
   VerifyEmailDto,
+  VerifyEmailData,
   ResendVerificationDto,
+  ResendVerificationData,
   LogoutDto,
   AcceptInviteDto,
+  AcceptInviteData,
   AuthTokens,
   User,
 } from "@/types/api/auth";
 
 const REMEMBER_FLAG = "worker_remember";
+
+type SuccessEnvelope<T> = IApiResponse<T> & { data: T };
+
+const call = async <T>(request: Promise<IApiResponse<T>>): Promise<SuccessEnvelope<T>> => {
+  const res = await request;
+  if (!res.success || !res.data) {
+    throw new ApiError(res.message, undefined, res.errors);
+  }
+  return res as SuccessEnvelope<T>;
+};
 
 const applyAuthResult = (
   user: User,
@@ -38,13 +58,15 @@ const applyAuthResult = (
 
 export const useRegisterTalent = () => {
   return useMutation({
-    mutationFn: (data: RegisterTalentDto) => authService.registerTalent(data),
+    mutationFn: (data: RegisterTalentDto) =>
+      call(api.post<RegisterTalentData>("/auth/register/talent", data)),
   });
 };
 
 export const useRegisterClient = () => {
   return useMutation({
-    mutationFn: (data: RegisterClientDto) => authService.registerClient(data),
+    mutationFn: (data: RegisterClientDto) =>
+      call(api.post<RegisterClientData>("/auth/register/client", data)),
   });
 };
 
@@ -52,7 +74,8 @@ export const useLogin = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: LoginDto) => authService.login(data),
+    mutationFn: (data: LoginDto) =>
+      call(api.post<LoginData>("/auth/login", data)),
     onSuccess: (response, variables) => {
       applyAuthResult(
         response.data.user,
@@ -69,7 +92,8 @@ export const useGoogleAuth = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: GoogleAuthDto) => authService.googleAuth(data),
+    mutationFn: (data: GoogleAuthDto) =>
+      call(api.post<GoogleAuthData>("/auth/google", data)),
     onSuccess: (response) => {
       applyAuthResult(
         response.data.user,
@@ -86,7 +110,12 @@ export const useCompleteTalentProfile = () => {
 
   return useMutation({
     mutationFn: (data: CompleteTalentRegistrationDto) =>
-      authService.completeTalentProfile(data),
+      call(
+        api.auth.post<CompleteTalentRegistrationData>(
+          "/auth/complete/talent-profile",
+          data
+        )
+      ),
     onSuccess: (response) => {
       useAuthStore.getState().setUser(response.data.user);
       queryClient.invalidateQueries({ queryKey: ["user"] });
@@ -99,7 +128,12 @@ export const useCompleteClientProfile = () => {
 
   return useMutation({
     mutationFn: (data: CompleteClientRegistrationDto) =>
-      authService.completeClientProfile(data),
+      call(
+        api.auth.post<CompleteClientRegistrationData>(
+          "/auth/complete/client-profile",
+          data
+        )
+      ),
     onSuccess: (response) => {
       useAuthStore.getState().setUser(response.data.user);
       queryClient.invalidateQueries({ queryKey: ["user"] });
@@ -111,7 +145,8 @@ export const useVerifyEmail = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: VerifyEmailDto) => authService.verifyEmail(data),
+    mutationFn: (data: VerifyEmailDto) =>
+      call(api.post<VerifyEmailData>("/auth/verify-email", data)),
     onSuccess: (response) => {
       applyAuthResult(
         response.data.user,
@@ -127,7 +162,8 @@ export const useAcceptInvite = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: AcceptInviteDto) => authService.acceptInvite(data),
+    mutationFn: (data: AcceptInviteDto) =>
+      call(api.post<AcceptInviteData>("/auth/accept-invite", data)),
     onSuccess: (response) => {
       applyAuthResult(
         response.data.user,
@@ -141,20 +177,24 @@ export const useAcceptInvite = () => {
 
 export const useForgotPassword = () => {
   return useMutation({
-    mutationFn: (data: ForgotPasswordDto) => authService.forgotPassword(data),
+    mutationFn: (data: ForgotPasswordDto) =>
+      call(api.post<ForgotPasswordData>("/auth/forgot-password", data)),
   });
 };
 
 export const useResetPassword = () => {
   return useMutation({
-    mutationFn: (data: ResetPasswordDto) => authService.resetPassword(data),
+    mutationFn: (data: ResetPasswordDto) =>
+      call(api.post<null>("/auth/reset-password", data)),
   });
 };
 
 export const useResendVerification = () => {
   return useMutation({
     mutationFn: (data: ResendVerificationDto) =>
-      authService.resendVerification(data),
+      call(
+        api.post<ResendVerificationData>("/auth/resend-verification", data)
+      ),
   });
 };
 
@@ -162,7 +202,8 @@ export const useLogout = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data?: LogoutDto) => authService.logout(data),
+    mutationFn: (data?: LogoutDto) =>
+      call(api.auth.post<null>("/auth/logout", data)),
     onSettled: () => {
       clearTokens();
       useAuthStore.getState().clear();
@@ -170,4 +211,3 @@ export const useLogout = () => {
     },
   });
 };
-

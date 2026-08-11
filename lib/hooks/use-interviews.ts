@@ -3,7 +3,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { queryKeys } from "@/lib/api/query-keys";
 import type {
   AddInterviewParticipantsInput,
@@ -38,7 +38,7 @@ export function useInterviews(params: InterviewQueryParams = {}) {
   return useQuery({
     queryKey: queryKeys.interviews.list(params),
     queryFn: async () => {
-      const res = await worker.auth.get<ListInterviewsData>(
+      const res = await api.auth.get<ListInterviewsData>(
         buildUrl("/interviews", params)
       );
       if (!res.success)
@@ -53,7 +53,7 @@ export function useInterview(id: string) {
     queryKey: queryKeys.interviews.detail(id),
     enabled: Boolean(id),
     queryFn: async () => {
-      const res = await worker.auth.get<InterviewData>(`/interviews/${id}`);
+      const res = await api.auth.get<InterviewData>(`/interviews/${id}`);
       if (!res.success)
         throw new Error(res.message || "Failed to load interview");
       return res.data!;
@@ -65,7 +65,7 @@ export function useInterviewCalendar(params: InterviewQueryParams = {}) {
   return useQuery({
     queryKey: queryKeys.interviews.calendar(params),
     queryFn: async () => {
-      const res = await worker.auth.get<InterviewCalendarData>(
+      const res = await api.auth.get<InterviewCalendarData>(
         buildUrl("/interviews/calendar", params)
       );
       if (!res.success)
@@ -80,7 +80,7 @@ export function useScheduleInterview() {
 
   return useMutation({
     mutationFn: async (data: ScheduleInterviewInput) => {
-      const res = await worker.auth.post<InterviewData>("/interviews", data);
+      const res = await api.auth.post<InterviewData>("/interviews", data);
       if (!res.success)
         throw new Error(res.message || "Failed to schedule interview");
       return res.data!;
@@ -99,7 +99,7 @@ export function useInterviewAction(action: InterviewAction) {
   return useMutation({
     mutationFn: async ({ id, note }: { id: string; note?: string }) => {
       const body: InterviewNoteInput = note ? { note } : {};
-      const res = await worker.auth.post<InterviewData>(
+      const res = await api.auth.post<InterviewData>(
         `/interviews/${id}/${action}`,
         body
       );
@@ -124,7 +124,7 @@ export function useRequestReschedule() {
       id: string;
       data: RequestRescheduleInput;
     }) => {
-      const res = await worker.auth.post<InterviewData>(
+      const res = await api.auth.post<InterviewData>(
         `/interviews/${id}/reschedule/request`,
         data
       );
@@ -149,7 +149,7 @@ export function useRescheduleInterview() {
       id: string;
       data: RescheduleInterviewInput;
     }) => {
-      const res = await worker.auth.post<InterviewData>(
+      const res = await api.auth.post<InterviewData>(
         `/interviews/${id}/reschedule`,
         data
       );
@@ -174,7 +174,7 @@ export function useSubmitInterviewFeedback() {
       id: string;
       data: SubmitFeedbackInput;
     }) => {
-      const res = await worker.auth.post<InterviewData>(
+      const res = await api.auth.post<InterviewData>(
         `/interviews/${id}/feedback`,
         data
       );
@@ -199,7 +199,7 @@ export function useAddInterviewParticipants() {
       id: string;
       data: AddInterviewParticipantsInput;
     }) => {
-      const res = await worker.auth.post<InterviewData>(
+      const res = await api.auth.post<InterviewData>(
         `/interviews/${id}/participants`,
         data
       );
@@ -224,7 +224,7 @@ export function useUpdateInterviewStatusAdmin() {
       id: string;
       data: UpdateInterviewStatusAdminInput;
     }) => {
-      const res = await worker.auth.patch<InterviewData>(
+      const res = await api.auth.patch<InterviewData>(
         `/interviews/${id}/status`,
         data
       );
@@ -244,7 +244,7 @@ export function useAddMeetLink() {
   return useMutation({
     mutationFn: async ({ id, note }: { id: string; note?: string }) => {
       const body: InterviewNoteInput = note ? { note } : {};
-      const res = await worker.auth.post<InterviewData>(
+      const res = await api.auth.post<InterviewData>(
         `/interviews/${id}/meet-link`,
         body
       );

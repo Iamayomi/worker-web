@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -72,7 +72,7 @@ export default function SecuritySettingsPage() {
       return;
     }
     setLoading(true);
-    const res = await worker.auth.post("/auth/change-password", {
+    const res = await api.auth.post("/auth/change-password", {
       ...(hasPassword ? { current_password: currentPassword } : {}),
       new_password: newPassword,
     });

@@ -39,7 +39,7 @@ import {
   ExportCsvButton,
   type CsvRow,
 } from "@/components/shared/export-csv-button";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { fetchAllPages, assertSuccess } from "@/lib/utils/export-all";
 import { VerifiedBadge } from "@/components/shared/verified-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -174,7 +174,7 @@ export function UsersTable({
       if (email.trim()) params.set("email", email.trim());
       if (status !== "all") params.set("status", status);
       if (accountType !== "all") params.set("accountType", accountType);
-      const res = await worker.auth.get<UsersListData>(`/users?${params}`);
+      const res = await api.auth.get<UsersListData>(`/users?${params}`);
       assertSuccess(res);
       return {
         items: (res.data!.users ?? []).map((u) => ({

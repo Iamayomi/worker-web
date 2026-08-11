@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 
 export type ReportReason =
   | "spam"
@@ -74,7 +74,7 @@ export function useCreateReport() {
       reason: ReportReason;
       description?: string;
     }) => {
-      const res = await worker.auth.post<{ report: ReportData }>(
+      const res = await api.auth.post<{ report: ReportData }>(
         "/safety/reports",
         data
       );
@@ -94,7 +94,7 @@ export function useCreateContentReport() {
       reason: string;
       description?: string;
     }) => {
-      const res = await worker.auth.post<{ report: { id: string } }>(
+      const res = await api.auth.post<{ report: { id: string } }>(
         "/safety/content-reports",
         data
       );
@@ -130,7 +130,7 @@ export function useReports(params?: {
       if (action) query.set("action", action);
       if (reportedEmail) query.set("reportedEmail", reportedEmail);
       if (reporterEmail) query.set("reporterEmail", reporterEmail);
-      const res = await worker.auth.get<ListReportsData>(
+      const res = await api.auth.get<ListReportsData>(
         `/safety/reports?${query}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load reports");
@@ -148,7 +148,7 @@ export function useReviewReport() {
       action?: ReportAction;
       adminNote?: string;
     }) => {
-      const res = await worker.auth.patch<{ report: ReportData }>(
+      const res = await api.auth.patch<{ report: ReportData }>(
         `/safety/reports/${data.reportId}`,
         {
           status: data.status,
@@ -169,7 +169,7 @@ export function useReviewReport() {
 export function useBlockUser() {
   return useMutation({
     mutationFn: async (data: { blockedId: string; reason?: string }) => {
-      const res = await worker.auth.post<{ block: BlockData }>(
+      const res = await api.auth.post<{ block: BlockData }>(
         "/safety/blocks",
         data
       );
@@ -183,7 +183,7 @@ export function useUnblockUser() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (blockedId: string) => {
-      const res = await worker.auth.delete<{ block: BlockData }>(
+      const res = await api.auth.delete<{ block: BlockData }>(
         `/safety/blocks/${blockedId}`
       );
       if (!res.success) throw new Error(res.message || "Failed to unblock user");
@@ -203,7 +203,7 @@ export function useBlockedUsers(params?: { page?: number; limit?: number }) {
     queryKey: ["safety", "blocks", { page, limit }],
     queryFn: async () => {
       const query = new URLSearchParams({ page: String(page), limit: String(limit) });
-      const res = await worker.auth.get<ListBlocksData>(
+      const res = await api.auth.get<ListBlocksData>(
         `/safety/blocks?${query}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load blocked users");
@@ -229,7 +229,7 @@ export function useAllBlocks(params?: {
       const query = new URLSearchParams({ page: String(page), limit: String(limit) });
       if (blockerEmail) query.set("blockerEmail", blockerEmail);
       if (blockedEmail) query.set("blockedEmail", blockedEmail);
-      const res = await worker.auth.get<ListBlocksData>(
+      const res = await api.auth.get<ListBlocksData>(
         `/safety/blocks/admin?${query}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load blocks");
@@ -242,7 +242,7 @@ export function useRemoveBlock() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (blockId: string) => {
-      const res = await worker.auth.delete<{ blockId: string }>(
+      const res = await api.auth.delete<{ blockId: string }>(
         `/safety/blocks/admin/${blockId}`
       );
       if (!res.success) throw new Error(res.message || "Failed to remove block");
@@ -312,7 +312,7 @@ export function useContentReports(params?: {
       if (targetType) query.set("targetType", targetType);
       if (reason) query.set("reason", reason);
       if (reporterEmail) query.set("reporterEmail", reporterEmail);
-      const res = await worker.auth.get<ListContentReportsData>(
+      const res = await api.auth.get<ListContentReportsData>(
         `/safety/content-reports?${query}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load content reports");
@@ -330,7 +330,7 @@ export function useReviewContentReport() {
       action?: ModerationAction;
       adminNote?: string;
     }) => {
-      const res = await worker.auth.patch<{ report: ContentReportData; contentRemoved: boolean }>(
+      const res = await api.auth.patch<{ report: ContentReportData; contentRemoved: boolean }>(
         `/safety/content-reports/${data.reportId}`,
         {
           status: data.status,
@@ -380,7 +380,7 @@ export function useDuplicateGroups(params?: { page?: number; limit?: number }) {
     queryKey: ["safety", "duplicates", { page, limit }],
     queryFn: async () => {
       const query = new URLSearchParams({ page: String(page), limit: String(limit) });
-      const res = await worker.auth.get<DetectDuplicatesData>(
+      const res = await api.auth.get<DetectDuplicatesData>(
         `/safety/duplicates?${query}`
       );
       if (!res.success) throw new Error(res.message || "Failed to detect duplicates");
@@ -393,7 +393,7 @@ export function useMergeAccounts() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { primaryUserId: string; duplicateUserId: string }) => {
-      const res = await worker.auth.post<{
+      const res = await api.auth.post<{
         primaryUserId: string;
         mergedUserId: string;
         email: string;
@@ -483,7 +483,7 @@ export function useFraudSignals(params?: {
       if (severity) query.set("severity", severity);
       if (signalType) query.set("signalType", signalType);
       if (userId) query.set("userId", userId);
-      const res = await worker.auth.get<ListFraudSignalsData>(
+      const res = await api.auth.get<ListFraudSignalsData>(
         `/safety/fraud-signals?${query}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load fraud signals");
@@ -495,7 +495,7 @@ export function useFraudSignals(params?: {
 export function useFraudRiskScore() {
   return useMutation({
     mutationFn: async (userId: string) => {
-      const res = await worker.auth.get<FraudRiskScoreData>(
+      const res = await api.auth.get<FraudRiskScoreData>(
         `/safety/fraud-signals/risk/${userId}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load risk score");
@@ -512,7 +512,7 @@ export function useReviewFraudSignal() {
       status: FraudSignalStatus;
       adminNote?: string;
     }) => {
-      const res = await worker.auth.patch<{ signal: FraudSignalData }>(
+      const res = await api.auth.patch<{ signal: FraudSignalData }>(
         `/safety/fraud-signals/${data.signalId}`,
         {
           status: data.status,
@@ -604,7 +604,7 @@ export function useAuditLogs(params?: {
       if (params?.actorEmail) query.set("actorEmail", params.actorEmail);
       if (params?.from) query.set("from", params.from);
       if (params?.to) query.set("to", params.to);
-      const res = await worker.auth.get<ListAuditLogsData>(
+      const res = await api.auth.get<ListAuditLogsData>(
         `/safety/audit-logs?${query}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load audit logs");
