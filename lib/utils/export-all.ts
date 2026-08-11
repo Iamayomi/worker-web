@@ -1,4 +1,4 @@
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 
 export interface FetchPageResult<T> {
   items: T[];
@@ -32,4 +32,4 @@ export function assertSuccess(res: { success: boolean; message?: string }) {
   if (!res.success) throw new Error(res.message || "Failed to fetch data");
 }
 
-export { worker };
+export { api };

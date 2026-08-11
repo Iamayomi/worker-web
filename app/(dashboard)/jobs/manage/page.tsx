@@ -9,7 +9,7 @@ import {
   type AdminJobRow,
   type AllJobsData,
 } from "@/lib/hooks/use-jobs";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { fetchAllPages, assertSuccess } from "@/lib/utils/export-all";
 import { JobStatus } from "@/types/api/jobs";
 import { UserRole } from "@/types/api/auth";
@@ -134,7 +134,7 @@ export default function ManageJobsPage() {
       const params = new URLSearchParams({ page: String(p), limit: String(l) });
       if (query.trim()) params.set("query", query.trim());
       if (status !== "all") params.set("status", status);
-      const res = await worker.auth.get<AllJobsData>(
+      const res = await api.auth.get<AllJobsData>(
         `/jobs/admin/all?${params}`
       );
       assertSuccess(res);

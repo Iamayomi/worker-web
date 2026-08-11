@@ -9,7 +9,6 @@ const columns = [
     links: [
       { label: "Browse jobs", href: "/jobs" },
       { label: "Create profile", href: "/register/talent" },
-      { label: "Community", href: "/community" },
       { label: "Career advice", href: "/resources?category=Career+advice" },
     ],
   },

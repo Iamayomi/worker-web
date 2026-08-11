@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import {
   HealthCheckData,
   LivenessData,
@@ -12,7 +12,7 @@ export function useHealth() {
   return useQuery({
     queryKey: queryKeys.health.all(),
     queryFn: async () => {
-      const res = await worker.get<HealthCheckData>("/health");
+      const res = await api.get<HealthCheckData>("/health");
       if (!res.success) throw new Error(res.message || "Failed to check health");
       return res.data!;
     },
@@ -25,7 +25,7 @@ export function useLiveness() {
   return useQuery({
     queryKey: queryKeys.health.live(),
     queryFn: async () => {
-      const res = await worker.get<LivenessData>("/health/live");
+      const res = await api.get<LivenessData>("/health/live");
       if (!res.success) throw new Error(res.message || "Liveness check failed");
       return res.data!;
     },
@@ -38,7 +38,7 @@ export function useReadiness() {
   return useQuery({
     queryKey: queryKeys.health.ready(),
     queryFn: async () => {
-      const res = await worker.get<ReadinessData>("/health/ready");
+      const res = await api.get<ReadinessData>("/health/ready");
       if (!res.success) throw new Error(res.message || "Readiness check failed");
       return res.data!;
     },
@@ -51,7 +51,7 @@ export function usePerformanceMetrics() {
   return useQuery({
     queryKey: queryKeys.health.metrics(),
     queryFn: async () => {
-      const res = await worker.auth.get<PerformanceMetricsData>("/health/metrics");
+      const res = await api.auth.get<PerformanceMetricsData>("/health/metrics");
       if (!res.success) throw new Error(res.message || "Failed to load metrics");
       return res.data!;
     },

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import type {
   FollowUserResponseData,
   GetFollowStatusData,
@@ -18,7 +18,7 @@ export function useFollowStatus(targetUserId: string, enabled = true) {
     enabled: enabled && Boolean(targetUserId),
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<GetFollowStatusData>(
+      const res = await api.auth.get<GetFollowStatusData>(
         `/follows/status/${targetUserId}`
       );
       if (!res.success)
@@ -33,7 +33,7 @@ export function useFollow() {
 
   return useMutation({
     mutationFn: async (targetUserId: string) => {
-      const res = await worker.auth.post<FollowUserResponseData>(
+      const res = await api.auth.post<FollowUserResponseData>(
         `/follows/${targetUserId}`
       );
       if (!res.success) throw new Error(res.message || "Failed to follow");
@@ -50,7 +50,7 @@ export function useUnfollow() {
 
   return useMutation({
     mutationFn: async (targetUserId: string) => {
-      const res = await worker.auth.delete<{ message: string }>(
+      const res = await api.auth.delete<{ message: string }>(
         `/follows/${targetUserId}`
       );
       if (!res.success) throw new Error(res.message || "Failed to unfollow");
@@ -73,7 +73,7 @@ export function useUserFollowers(
     enabled: enabled && Boolean(userId),
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<ListFollowsData>(
+      const res = await api.auth.get<ListFollowsData>(
         `/follows/users/${userId}/followers?page=${page}&limit=${limit}`
       );
       if (!res.success)
@@ -99,7 +99,7 @@ export function useUserFollowing(
     enabled: enabled && Boolean(userId),
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<ListFollowsData>(
+      const res = await api.auth.get<ListFollowsData>(
         `/follows/users/${userId}/following?page=${page}&limit=${limit}`
       );
       if (!res.success)
@@ -125,7 +125,7 @@ export function useAdminRemoveFollower() {
       userId: string;
       followerId: string;
     }) => {
-      const res = await worker.auth.delete<{ message: string }>(
+      const res = await api.auth.delete<{ message: string }>(
         `/follows/users/${userId}/followers/${followerId}`
       );
       if (!res.success) throw new Error(res.message || "Failed to remove follower");
@@ -147,7 +147,7 @@ export function useMyFollowers(page = 1, limit = 10) {
     queryKey: ["follows", "me", "followers", page, limit],
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<ListFollowsData>(
+      const res = await api.auth.get<ListFollowsData>(
         `/follows/followers?page=${page}&limit=${limit}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load followers");
@@ -166,7 +166,7 @@ export function useMyFollowing(page = 1, limit = 10) {
     queryKey: ["follows", "me", "following", page, limit],
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<ListFollowsData>(
+      const res = await api.auth.get<ListFollowsData>(
         `/follows/following?page=${page}&limit=${limit}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load following");

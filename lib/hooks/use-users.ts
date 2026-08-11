@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import type { AccountType, User, UserRole, UserStatus } from "@/types/api/auth";
 import { queryKeys } from "@/lib/api/query-keys";
 
@@ -86,7 +86,7 @@ export function useAdminDashboard(
   return useQuery({
     queryKey: queryKeys.user.adminDashboard(params),
     queryFn: async () => {
-      const res = await worker.auth.get<AdminDashboardData>(
+      const res = await api.auth.get<AdminDashboardData>(
         `/users/admin/dashboard${qs ? `?${qs}` : ""}`
       );
       if (!res.success)
@@ -101,7 +101,7 @@ export function useInviteUser() {
 
   return useMutation({
     mutationFn: async (data: InviteUserInput) => {
-      const res = await worker.auth.post<{ user: User; otp_reference: string }>(
+      const res = await api.auth.post<{ user: User; otp_reference: string }>(
         "/auth/invite",
         data
       );
@@ -132,7 +132,7 @@ export function useInvitees(params?: {
         limit: String(limit),
       });
       if (accountType !== "all") query.set("accountType", accountType);
-      const res = await worker.auth.get<InviteesData>(
+      const res = await api.auth.get<InviteesData>(
         `/users/me/invitees?${query}`
       );
       if (!res.success)
@@ -172,7 +172,7 @@ export function useAllUsers(params?: {
       if (email) query.set("email", email);
       if (status) query.set("status", status);
       if (accountType) query.set("accountType", accountType);
-      const res = await worker.auth.get<UsersListData>(`/users?${query}`);
+      const res = await api.auth.get<UsersListData>(`/users?${query}`);
       if (!res.success) throw new Error(res.message || "Failed to load users");
       const data = res.data!;
       return {
@@ -213,7 +213,7 @@ export function useAdminInvites(params?: {
       if (accountType !== "all") query.set("accountType", accountType);
       if (status !== "all") query.set("status", status);
       if (invitedByEmail) query.set("invitedByEmail", invitedByEmail);
-      const res = await worker.auth.get<InviteesData>(`/users/invites?${query}`);
+      const res = await api.auth.get<InviteesData>(`/users/invites?${query}`);
       if (!res.success) throw new Error(res.message || "Failed to load invites");
       const data = res.data!;
       return {
@@ -232,7 +232,7 @@ export function useDeleteUser() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete<{ message: string }>(`/users/${id}`);
+      const res = await api.auth.delete<{ message: string }>(`/users/${id}`);
       if (!res.success) throw new Error(res.message || "Failed to delete user");
       return res.data;
     },
@@ -250,7 +250,7 @@ export function useReviewClientVerification() {
       userId: string;
       decision: VerificationDecision;
     }) => {
-      const res = await worker.auth.patch<{ message: string }>(
+      const res = await api.auth.patch<{ message: string }>(
         "/client-profiles/verification",
         data
       );
@@ -275,7 +275,7 @@ export function useGetUser(id: string | undefined) {
     enabled: !!id,
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<{ user: UserDetailData }>(
+      const res = await api.auth.get<{ user: UserDetailData }>(
         `/users/${id}`
       );
       if (!res.success) throw new Error(res.message || "Failed to load user");
@@ -289,7 +289,7 @@ export function useSuspendUser() {
 
   return useMutation({
     mutationFn: async (data: { userId: string; reason?: string }) => {
-      const res = await worker.auth.patch<{ message: string }>(
+      const res = await api.auth.patch<{ message: string }>(
         `/users/${data.userId}/suspend`,
         { reason: data.reason }
       );
@@ -308,7 +308,7 @@ export function useActivateUser() {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const res = await worker.auth.patch<{ message: string }>(
+      const res = await api.auth.patch<{ message: string }>(
         `/users/${userId}/activate`,
         {}
       );
@@ -345,7 +345,7 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: async (data: UpdateUserInput) => {
       const { userId, ...body } = data;
-      const res = await worker.auth.patch<{ user: User }>(
+      const res = await api.auth.patch<{ user: User }>(
         `/users/${userId}`,
         body
       );
@@ -364,7 +364,7 @@ export function useUploadAvatar() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await worker.auth.upload<{ jobId: string; message: string }>(
+      const res = await api.auth.upload<{ jobId: string; message: string }>(
         "/upload/avatar",
         formData
       );
@@ -380,7 +380,7 @@ export function useUploadDocument() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("folder", "documents");
-      const res = await worker.auth.upload<{ jobId: string; message: string }>(
+      const res = await api.auth.upload<{ jobId: string; message: string }>(
         "/upload/document",
         formData
       );

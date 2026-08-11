@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import type { AccountType } from "@/types/api/auth";
 
 export interface ReferralSummaryData {
@@ -26,7 +26,7 @@ export function useReferralSummary(enabled = true) {
     queryKey: ["referral", "summary"],
     enabled,
     queryFn: async () => {
-      const res = await worker.auth.get<ReferralSummaryData>("/referral/summary");
+      const res = await api.auth.get<ReferralSummaryData>("/referral/summary");
       if (!res.success)
         throw new Error(res.message || "Failed to load referral summary");
       return res.data!;
@@ -76,7 +76,7 @@ export function useUpdateReferralStatus() {
       status: ReferralStatusValue;
       note?: string;
     }) => {
-      const res = await worker.auth.patch<{
+      const res = await api.auth.patch<{
         referral: { id: string; status: string };
       }>(`/referral/admin/${data.id}`, {
         status: data.status,
@@ -116,7 +116,7 @@ export function useAllReferrals(params?: {
       if (status) query.set("status", status);
       if (accountType) query.set("accountType", accountType);
       if (partnerEmail) query.set("partnerEmail", partnerEmail);
-      const res = await worker.auth.get<AllReferralsData>(
+      const res = await api.auth.get<AllReferralsData>(
         `/referral/admin/all?${query}`
       );
       if (!res.success)

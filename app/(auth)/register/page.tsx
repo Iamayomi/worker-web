@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, type KeyboardEvent } from "react";
 import { Controller, useForm } from "react-hook-form";import { zodResolver } from "@hookform/resolvers/zod";
-import { AxiosError } from "axios";
 import {
   Check,
   LoaderCircle,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { errorMessage } from "@/lib/api/api-client";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { cn } from "@/lib/utils";
 
@@ -53,17 +53,6 @@ import {
 import { passwordSchema } from "@/schemas";
 
 type RegisterMode = "talent" | "client";
-
-const errorMessage = (error: unknown, fallback: string) => {
-  if (error instanceof AxiosError) {
-    return (
-      (error.response?.data?.message as string) ||
-      (error.response?.data?.error?.message as string) ||
-      fallback
-    );
-  }
-  return fallback;
-};
 
 const talentSchema = z.object({
   email: z.string().email("Invalid email address"),

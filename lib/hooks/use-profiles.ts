@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { queryKeys } from "@/lib/api/query-keys";
 import type { EmploymentType, WorkPreference } from "@/types/api/auth";
 
@@ -27,7 +27,7 @@ export function useClientProfile(enabled = true) {
     enabled,
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<ClientProfileData>("/client-profiles/me");
+      const res = await api.auth.get<ClientProfileData>("/client-profiles/me");
       if (!res.success)
         throw new Error(res.message || "Failed to load client profile");
       return res.data!;
@@ -53,7 +53,7 @@ export function useUpdateClientProfile() {
 
   return useMutation({
     mutationFn: async (data: UpdateClientProfileInput) => {
-      const res = await worker.auth.patch<ClientProfileData>(
+      const res = await api.auth.patch<ClientProfileData>(
         "/client-profiles/me",
         data
       );
@@ -97,7 +97,7 @@ export function useTalentProfile(enabled = true) {
     enabled,
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<TalentProfileData>("/talent-profiles/me");
+      const res = await api.auth.get<TalentProfileData>("/talent-profiles/me");
       if (!res.success)
         throw new Error(res.message || "Failed to load talent profile");
       return res.data!;
@@ -111,7 +111,7 @@ export function usePublicTalentProfile(id: string) {
     enabled: Boolean(id),
     retry: false,
     queryFn: async () => {
-      const res = await worker.get<TalentProfileData>(`/talent-profiles/${id}`);
+      const res = await api.get<TalentProfileData>(`/talent-profiles/${id}`);
       if (!res.success)
         throw new Error(res.message || "Profile not found");
       return res.data!;
@@ -125,7 +125,7 @@ export function useTalentProfileByUserId(userId: string, enabled = true) {
     enabled: Boolean(userId) && enabled,
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<TalentProfileData>(
+      const res = await api.auth.get<TalentProfileData>(
         `/talent-profiles/user/${userId}`
       );
       if (!res.success)
@@ -141,7 +141,7 @@ export function usePublicClientProfile(id: string) {
     enabled: Boolean(id),
     retry: false,
     queryFn: async () => {
-      const res = await worker.get<ClientProfileData>(
+      const res = await api.get<ClientProfileData>(
         `/client-profiles/${id}`
       );
       if (!res.success)
@@ -174,7 +174,7 @@ export function useUpdateTalentProfile() {
 
   return useMutation({
     mutationFn: async (data: UpdateTalentProfileInput) => {
-      const res = await worker.auth.patch<TalentProfileData>(
+      const res = await api.auth.patch<TalentProfileData>(
         "/talent-profiles/me",
         data
       );
@@ -193,7 +193,7 @@ export function useUpdateTalentProfileVisibility() {
 
   return useMutation({
     mutationFn: async (visibility: "public" | "private") => {
-      const res = await worker.auth.patch<TalentProfileData>(
+      const res = await api.auth.patch<TalentProfileData>(
         "/talent-profiles/visibility",
         { visibility }
       );

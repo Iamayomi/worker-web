@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { queryKeys } from "@/lib/api/query-keys";
 import type {
   GoogleCalendarAuthUrlData,
@@ -10,7 +10,7 @@ export function useGoogleCalendarStatus() {
   return useQuery({
     queryKey: queryKeys.googleCalendar.status(),
     queryFn: async () => {
-      const res = await worker.auth.get<GoogleCalendarStatusData>(
+      const res = await api.auth.get<GoogleCalendarStatusData>(
         "/google-calendar/status"
       );
       if (!res.success)
@@ -25,7 +25,7 @@ export function useConnectGoogleCalendar() {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await worker.auth.get<GoogleCalendarAuthUrlData>(
+      const res = await api.auth.get<GoogleCalendarAuthUrlData>(
         "/google-calendar/auth-url"
       );
       if (!res.success)
@@ -45,7 +45,7 @@ export function useDisconnectGoogleCalendar() {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await worker.auth.post<{ connected: boolean }>(
+      const res = await api.auth.post<{ connected: boolean }>(
         "/google-calendar/disconnect",
         {}
       );

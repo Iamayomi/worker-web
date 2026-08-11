@@ -4,4 +4,3 @@ export * from "./auth";
 export * from "./jobs";
 export * from "./posts";
 export * from "./health";
-export * from "./community";

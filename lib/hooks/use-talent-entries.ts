@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { queryKeys } from "@/lib/api/query-keys";
 import type {
   CertificationData,
@@ -19,7 +19,7 @@ function useList<T>(queryKey: readonly unknown[], path: string) {
     queryKey,
     retry: false,
     queryFn: async () => {
-      const res = await worker.auth.get<ListEnvelope<T>>(path);
+      const res = await api.auth.get<ListEnvelope<T>>(path);
       if (!res.success) throw new Error(res.message || "Failed to load");
       return res.data?.items ?? [];
     },
@@ -36,7 +36,7 @@ function usePublicList<T>(
     enabled,
     retry: false,
     queryFn: async () => {
-      const res = await worker.get<ListEnvelope<T>>(path);
+      const res = await api.get<ListEnvelope<T>>(path);
       if (!res.success) throw new Error(res.message || "Failed to load");
       return res.data?.items ?? [];
     },
@@ -50,7 +50,7 @@ function useEntryMutations<TInput>(path: string, key: readonly unknown[]) {
 
   const add = useMutation({
     mutationFn: async (data: TInput) => {
-      const res = await worker.auth.post<unknown>(path, data);
+      const res = await api.auth.post<unknown>(path, data);
       if (!res.success) throw new Error(res.message || "Failed to save");
       return res.data;
     },
@@ -59,7 +59,7 @@ function useEntryMutations<TInput>(path: string, key: readonly unknown[]) {
 
   const update = useMutation({
     mutationFn: async ({ id, ...data }: TInput & { id: string }) => {
-      const res = await worker.auth.patch<unknown>(`${path}/${id}`, data);
+      const res = await api.auth.patch<unknown>(`${path}/${id}`, data);
       if (!res.success) throw new Error(res.message || "Failed to save");
       return res.data;
     },
@@ -68,7 +68,7 @@ function useEntryMutations<TInput>(path: string, key: readonly unknown[]) {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete<{ removed: boolean }>(
+      const res = await api.auth.delete<{ removed: boolean }>(
         `${path}/${id}`
       );
       if (!res.success) throw new Error(res.message || "Failed to remove");
@@ -91,7 +91,7 @@ function useAdminEntryMutations<TInput>(
 
   const add = useMutation({
     mutationFn: async (data: TInput) => {
-      const res = await worker.auth.post<unknown>(`${path}/admin`, {
+      const res = await api.auth.post<unknown>(`${path}/admin`, {
         ...data,
         talentProfileId,
       });
@@ -103,7 +103,7 @@ function useAdminEntryMutations<TInput>(
 
   const update = useMutation({
     mutationFn: async ({ id, ...data }: TInput & { id: string }) => {
-      const res = await worker.auth.patch<unknown>(`${path}/admin/${id}`, {
+      const res = await api.auth.patch<unknown>(`${path}/admin/${id}`, {
         ...data,
         talentProfileId,
       });
@@ -115,7 +115,7 @@ function useAdminEntryMutations<TInput>(
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const res = await worker.auth.delete<{ removed: boolean }>(
+      const res = await api.auth.delete<{ removed: boolean }>(
         `${path}/admin/${id}`,
         { talentProfileId }
       );

@@ -8,7 +8,7 @@ import {
   useDeleteUser,
   type InviteesData,
 } from "@/lib/hooks/use-users";
-import { worker } from "@/lib/api/worker";
+import { api } from "@/lib/api/api-client";
 import { fetchAllPages, assertSuccess } from "@/lib/utils/export-all";
 import { ROLE_LABELS, ACCOUNT_TYPE_LABELS } from "@/lib/constants/enums";
 import { AccountType, UserStatus, UserRole } from "@/types/api/auth";
@@ -145,7 +145,7 @@ export default function AdminInvitesPage() {
       if (accountType !== "all") params.set("accountType", accountType);
       if (status !== "all") params.set("status", status);
       if (inviter.trim()) params.set("invitedByEmail", inviter.trim());
-      const res = await worker.auth.get<InviteesData>(
+      const res = await api.auth.get<InviteesData>(
         `/users/invites?${params}`
       );
       assertSuccess(res);

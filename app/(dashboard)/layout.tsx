@@ -29,7 +29,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { DashboardHeaderSkeleton } from "@/components/shared/skeletons";
+import { DashboardHeaderSkeleton, TalentHomeSkeleton } from "@/components/shared/skeletons";
 import { AccountType, UserRole } from "@/types/api/auth";
 import { TalentHeader, UserMenu } from "@/components/layout/talent-header";
 import { NotificationBell } from "@/components/shared/notification-bell";
@@ -326,7 +326,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [isLoading, isAuthenticated, accessToken, router]);
 
   if (pendingAuth) {
-    return <DashboardHeaderSkeleton />;
+    return pathname === "/home" ? <TalentHomeSkeleton /> : <DashboardHeaderSkeleton />;
   }
 
   if (!isAuthenticated && needsAuth) return null;

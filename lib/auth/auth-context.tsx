@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { worker, setTokens, clearTokens, loadTokens } from "../api/worker";
+import { api, setTokens, clearTokens, loadTokens } from "../api/api-client";
 import { useAuthStore } from "@/store/authStore";
 import type { AuthState, LoginCredentials, LoginData, UserData } from "./types";
 
@@ -32,12 +32,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const user = state.user ?? zustandUser ?? null;
 
   const refreshUser = useCallback(async () => {
-    const res = await worker.auth.get<{ user: UserData }>("/users/me");
-    setState((prev) =>
-      res.success && res.data?.user
-        ? { ...prev, user: res.data!.user, isAuthenticated: true, isLoading: false }
-        : { ...prev, isLoading: false },
-    );
+    try {
+      const res = await api.auth.get<{ user: UserData }>("/users/me");
+      setState((prev) =>
+        res.success && res.data?.user
+          ? { ...prev, user: res.data!.user, isAuthenticated: true, isLoading: false }
+          : { ...prev, isLoading: false },
+      );
+    } catch {
+      // A failed /users/me (e.g. network error) must never leave the
+      // provider stuck in a loading state.
+      setState((prev) => ({ ...prev, isLoading: false }));
+    }
   }, []);
 
   useEffect(() => {
@@ -64,43 +70,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshUser]);
 
+  const hadTokensRef = useRef(false);
+
   useEffect(() => {
-    if (zustandTokens?.access_token && !state.accessToken) {
-      const remember =
-        typeof window !== "undefined" &&
-        window.localStorage.getItem("worker_remember") === "true";
-      setTokens(zustandTokens.access_token, zustandTokens.refresh_token, remember);
-      let cancelled = false;
-      void Promise.resolve().then(() => {
-        if (!cancelled) refreshUser();
-      });
-      return () => {
-        cancelled = true;
-      };
+    if (zustandTokens?.access_token) {
+      hadTokensRef.current = true;
+      if (!state.accessToken) {
+        const remember =
+          typeof window !== "undefined" &&
+          window.localStorage.getItem("worker_remember") === "true";
+        setTokens(zustandTokens.access_token, zustandTokens.refresh_token, remember);
+        let cancelled = false;
+        void Promise.resolve().then(() => {
+          if (!cancelled) refreshUser();
+        });
+        return () => {
+          cancelled = true;
+        };
+      }
+      return;
     }
 
-    if (!zustandTokens?.access_token && state.accessToken) {
-      let cancelled = false;
-      void Promise.resolve().then(() => {
-        if (!cancelled) {
-          setState((prev) => ({
-            ...prev,
-            user: null,
-            accessToken: null,
-            refreshToken: null,
-            isAuthenticated: false,
-            isLoading: false,
-          }));
-        }
+    if (hadTokensRef.current) {
+      hadTokensRef.current = false;
+      setState({
+        user: null,
+        accessToken: null,
+        refreshToken: null,
+        isAuthenticated: false,
+        isLoading: false,
       });
-      return () => {
-        cancelled = true;
-      };
     }
   }, [zustandTokens, state.accessToken, refreshUser]);
 
+  useEffect(() => {
+    if (!state.isAuthenticated && !accessToken) return;
+    let active = true;
+    const check = () => {
+      if (active) void refreshUser();
+    };
+    const id = window.setInterval(check, 60_000);
+    window.addEventListener("focus", check);
+    return () => {
+      active = false;
+      window.clearInterval(id);
+      window.removeEventListener("focus", check);
+    };
+  }, [state.isAuthenticated, accessToken, refreshUser]);
+
   const login = useCallback(async (credentials: LoginCredentials) => {
-    const res = await worker.post<LoginData>("/auth/login", credentials);
+    const res = await api.post<LoginData>("/auth/login", credentials);
     if (res.success && res.data?.tokens) {
       const remember = credentials.rememberMe ?? true;
       if (typeof window !== "undefined") {
@@ -120,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await worker.auth.post("/auth/logout").catch(() => {});
+    await api.auth.post("/auth/logout").catch(() => {});
     clearTokens();
     useAuthStore.getState().clear();
     setState({
