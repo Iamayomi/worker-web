@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { JobCard } from "@/components/jobs/job-card";
 
-export function RecommendedJobs({ pageSize = 6 }: { pageSize?: number }) {
+export function RecommendedJobs({
+  pageSize = 6,
+  blueText = false,
+}: {
+  pageSize?: number;
+  blueText?: boolean;
+}) {
   const {
     data,
     isLoading,
@@ -59,7 +65,7 @@ export function RecommendedJobs({ pageSize = 6 }: { pageSize?: number }) {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {jobs.map((job) => (
-          <JobCard key={job.id} job={job} />
+          <JobCard key={job.id} job={job} blueText={blueText} />
         ))}
       </div>
       {hasNextPage && (

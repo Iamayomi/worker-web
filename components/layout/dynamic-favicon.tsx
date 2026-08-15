@@ -51,7 +51,7 @@ function faviconForPath(pathname: string): FaviconSpec {
 function buildSvg({ letter, accent }: FaviconSpec): string {
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
-    `<rect width="64" height="64" rx="16" fill="#0A0A0A"/>` +
+    `<rect width="64" height="64" rx="16" fill="#2563EB"/>` +
     `<circle cx="48" cy="16" r="7" fill="${accent}"/>` +
     `<text x="32" y="40" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#FFFFFF" text-anchor="middle">${letter}</text>` +
     `</svg>`;

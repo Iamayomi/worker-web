@@ -50,7 +50,7 @@ export function SmartSearch() {
   });
 
   return (
-    <div className="w-full rounded-2xl border-2 border-foreground bg-background shadow-[8px_8px_0_0_#00a443]">
+    <div className="w-full rounded-2xl border-2 border-foreground bg-background shadow-[8px_8px_0_0_#2563EB]">
       <div className="flex items-center gap-3 border-b-2 border-foreground px-5 py-4">
         <Search className="h-5 w-5 shrink-0 text-primary" />
         <input

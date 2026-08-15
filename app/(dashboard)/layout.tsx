@@ -234,11 +234,18 @@ function SidebarLogo({
       }`}
     >
       {collapsed ? (
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-sm font-bold text-white dark:bg-white dark:text-neutral-900">
           W
         </span>
       ) : (
-        <span className="text-lg font-bold tracking-tight">Worker</span>
+        <span className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-sm font-bold text-white dark:bg-white dark:text-neutral-900">
+            W
+          </span>
+          <span className="text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+            Worker
+          </span>
+        </span>
       )}
     </Link>
   );
@@ -406,7 +413,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {clientProfile?.companyName ?? "Dashboard"}
                   </span>
                   {clientProfile?.verificationStatus === "verified" && (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-neutral-900/5 px-2 py-0.5 text-xs font-medium text-neutral-600 dark:bg-white/10 dark:text-neutral-300">
                       <BadgeCheck className="h-3.5 w-3.5" />
                       Verified
                     </span>
