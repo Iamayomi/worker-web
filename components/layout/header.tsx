@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bookmark, ChevronDown, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { cn, getDashboardRoute } from "@/lib/utils";
-import { useAuthStore } from "@/store/authStore";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useLogout } from "@/hooks/api/useAuth";
 import { useTalentProfile, useClientProfile } from "@/lib/hooks/use-profiles";
 import { ROLE_LABELS } from "@/lib/constants/enums";
@@ -206,7 +206,7 @@ const navItems: NavItem[] = [
 ];
 
 function UserMenu() {
-  const user = useAuthStore((s) => s.user);
+  const { user, isAuthenticated } = useAuth();
   const logout = useLogout();
   const router = useRouter();
   const roles = ((user?.roles ?? []) as UserRole[]);
@@ -216,6 +216,8 @@ function UserMenu() {
   const isTalent = user?.accountType === AccountType.TALENT && !isAdmin;
   const { data: talentProfile } = useTalentProfile(Boolean(user) && isTalent);
   const { data: clientProfile } = useClientProfile(isClient);
+
+  if (!user || !isAuthenticated) return null;
 
   const fullName = talentProfile
     ? [talentProfile.firstName, talentProfile.lastName]
@@ -267,7 +269,15 @@ function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() => user && router.push(getDashboardRoute(user))}
+          onSelect={() =>
+            user &&
+            router.push(
+              getDashboardRoute({
+                accountType: user.accountType as AccountType,
+                roles: user.roles as UserRole[],
+              }),
+            )
+          }
           className="cursor-pointer"
         >
           <LayoutDashboard />
@@ -304,15 +314,23 @@ function UserMenu() {
 export function Header() {
   const [active, setActive] = useState<string | null>(null);
   const item = navItems.find((i) => i.label === active) ?? null;
-  const user = useAuthStore((s) => s.user);
+  const { user, isAuthenticated } = useAuth();
+  const showUserMenu = Boolean(user && isAuthenticated);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
       <div className="flex h-16 items-center justify-between px-5 sm:px-8">
         <div className="flex items-center gap-16">
           <Link
-            href={user ? getDashboardRoute(user) : "/"}
-            className="text-xl font-bold tracking-tight"
+            href={
+              user && isAuthenticated
+                ? getDashboardRoute({
+                    accountType: user.accountType as AccountType,
+                    roles: user.roles as UserRole[],
+                  })
+                : "/"
+            }
+            className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50"
           >
             Worker
           </Link>
@@ -335,7 +353,7 @@ export function Header() {
         </nav>
         <div className="hidden items-center gap-4 md:flex">
           <CountrySelect />
-          {user ? (
+          {showUserMenu ? (
             <>
               <NotificationBell />
               <UserMenu />
@@ -347,7 +365,7 @@ export function Header() {
               </Link>
               <Link
                 href="/register"
-                className="inline-flex h-9 items-center justify-center rounded-md bg-foreground px-4 text-sm font-medium text-background transition-opacity hover:opacity-80"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-80"
               >
                 Get started
               </Link>
@@ -356,7 +374,7 @@ export function Header() {
         </div>
         <div className="flex items-center gap-3 md:hidden">
           <CountrySelect />
-          {user ? (
+          {showUserMenu ? (
             <>
               <NotificationBell />
               <UserMenu />
@@ -364,7 +382,7 @@ export function Header() {
           ) : (
             <Link
               href="/register"
-              className="inline-flex h-9 items-center justify-center rounded-md bg-foreground px-4 text-sm font-medium text-background transition-opacity hover:opacity-80"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-80"
             >
               Get started
             </Link>
@@ -384,7 +402,7 @@ export function Header() {
               <Link
                 href={item.cta.href}
                 onClick={() => setActive(null)}
-                className="mt-6 inline-flex h-10 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-80"
+                className="mt-6 inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-80"
               >
                 {item.cta.label}
               </Link>

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { CompanyLink } from "@/components/jobs/company-link";
 import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
+import { cn } from "@/lib/utils";
 
 const employmentLabel = (value: string) =>
   EMPLOYMENT_TYPES.find((t) => t.value === value)?.label ?? value;
@@ -30,7 +31,12 @@ export function formatDate(value?: string): string {
   });
 }
 
-export function JobCard({ job }: { job: Job }) {
+export function JobCard({ job, blueText = false }: { job: Job; blueText?: boolean }) {
+  const muted = blueText
+    ? "text-blue-700/70 dark:text-blue-300/70"
+    : "text-muted-foreground";
+  const blue = blueText && "text-blue-700 dark:text-blue-400";
+
   return (
     <Link
       href={`/jobs/${job.id}`}
@@ -38,8 +44,8 @@ export function JobCard({ job }: { job: Job }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-base font-semibold">{job.title}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          <h3 className={cn("truncate text-base font-semibold", blue)}>{job.title}</h3>
+          <div className={cn("mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm", muted)}>
             {job.companyName && (
               <CompanyLink
                 clientProfileId={job.clientProfileId}
@@ -70,11 +76,11 @@ export function JobCard({ job }: { job: Job }) {
         )}
       </div>
 
-      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{job.description}</p>
+      <p className={cn("mt-3 line-clamp-2 text-sm", muted)}>{job.description}</p>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium">{formatSalary(job)}</p>
-        <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+        <p className={cn("text-sm font-medium", blue)}>{formatSalary(job)}</p>
+        <p className={cn("inline-flex items-center gap-1 text-xs", muted)}>
           <Clock className="h-3 w-3" />
           Closes {formatDate(job.expiresAt)}
         </p>

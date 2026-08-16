@@ -34,11 +34,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = useCallback(async () => {
     try {
       const res = await api.auth.get<{ user: UserData }>("/users/me");
-      setState((prev) =>
-        res.success && res.data?.user
-          ? { ...prev, user: res.data!.user, isAuthenticated: true, isLoading: false }
-          : { ...prev, isLoading: false },
-      );
+      if (res.success && res.data?.user) {
+        setState((prev) => ({
+          ...prev,
+          user: res.data!.user,
+          isAuthenticated: true,
+          isLoading: false,
+        }));
+      } else if (!useAuthStore.getState().tokens) {
+        // Session is dead: the 401 interceptor cleared the tokens, so drop
+        // the authenticated UI state immediately instead of waiting for the
+        // hard redirect to /login.
+        setState({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+      } else {
+        setState((prev) => ({ ...prev, isLoading: false }));
+      }
     } catch {
       // A failed /users/me (e.g. network error) must never leave the
       // provider stuck in a loading state.

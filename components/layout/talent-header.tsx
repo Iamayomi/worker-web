@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const accountType = user?.accountType;
@@ -45,6 +45,8 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
   const isTalent = accountType === AccountType.TALENT && !isAdmin;
   const { data: talentProfile } = useTalentProfile(isTalent || showAccountLinks);
   const { data: clientProfile } = useClientProfile(isClient);
+
+  if (!isAuthenticated) return null;
 
   const roleLabel =
     roles.length > 0
@@ -156,6 +158,7 @@ function UserMenu({ showAccountLinks = false }: { showAccountLinks?: boolean }) 
 const talentLinks = [
   { href: "/home", label: "Home", mobileLabel: "Home" },
   { href: "/jobs", label: "Jobs", mobileLabel: "Jobs" },
+  { href: "/applications", label: "Applications", mobileLabel: "Applications" },
   { href: "/interviews", label: "Interviews", mobileLabel: "Interviews" },
 ];
 
@@ -182,7 +185,7 @@ function TalentHeader({ pathname }: { pathname: string }) {
           </button>
           <Link
             href="/"
-            className="text-lg font-bold tracking-tight sm:text-xl"
+            className="text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-xl"
           >
             Worker
           </Link>

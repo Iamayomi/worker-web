@@ -2,21 +2,32 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/authStore";
+import { useAuth } from "@/lib/auth/auth-context";
 import { getDashboardRoute } from "@/lib/utils";
+import { AccountType, UserRole } from "@/types/api/auth";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const tokens = useAuthStore((s) => s.tokens);
-  const user = useAuthStore((s) => s.user);
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (tokens && user) {
-      router.replace(getDashboardRoute(user));
+    if (isAuthenticated && user) {
+      const redirect = new URLSearchParams(window.location.search).get("redirect");
+      router.replace(
+        redirect ||
+          getDashboardRoute({
+            accountType: user.accountType as AccountType,
+            roles: user.roles as UserRole[],
+          }),
+      );
     }
-  }, [tokens, user, router]);
+  }, [isAuthenticated, user, router]);
 
-  if (tokens) {
+  if (isLoading) {
+    return null;
+  }
+
+  if (isAuthenticated) {
     return null;
   }
 
