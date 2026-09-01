@@ -8,101 +8,101 @@ import { EMPLOYMENT_TYPES, WORK_PREFERENCES } from "@/lib/constants/enums";
 import { cn } from "@/lib/utils";
 
 const employmentLabel = (value: string) =>
-  EMPLOYMENT_TYPES.find((t) => t.value === value)?.label ?? value;
+ EMPLOYMENT_TYPES.find((t) => t.value === value)?.label ?? value;
 
 const preferenceLabel = (value: string) =>
-  WORK_PREFERENCES.find((t) => t.value === value)?.label ?? value;
+ WORK_PREFERENCES.find((t) => t.value === value)?.label ?? value;
 
 export function formatSalary(job: Job): string {
-  if (job.salaryMin == null && job.salaryMax == null) return "Salary negotiable";
-  const currency = (job.currency ?? "USD").toUpperCase();
-  const min = job.salaryMin != null ? `${currency} ${job.salaryMin.toLocaleString()}` : null;
-  const max = job.salaryMax != null ? `${currency} ${job.salaryMax.toLocaleString()}` : null;
-  if (min && max) return `${min} – ${max}`;
-  return (min ?? max) ?? "Salary negotiable";
+ if (job.salaryMin == null && job.salaryMax == null) return "Salary negotiable";
+ const currency = (job.currency ?? "USD").toUpperCase();
+ const min = job.salaryMin != null ? `${currency} ${job.salaryMin.toLocaleString()}` : null;
+ const max = job.salaryMax != null ? `${currency} ${job.salaryMax.toLocaleString()}` : null;
+ if (min && max) return `${min} – ${max}`;
+ return (min ?? max) ?? "Salary negotiable";
 }
 
 export function formatDate(value?: string): string {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+ if (!value) return "—";
+ return new Date(value).toLocaleDateString(undefined, {
+ year: "numeric",
+ month: "short",
+ day: "numeric",
+ });
 }
 
 export function JobCard({ job, blueText = false }: { job: Job; blueText?: boolean }) {
-  const muted = blueText
-    ? "text-blue-700/70 dark:text-blue-300/70"
-    : "text-muted-foreground";
-  const blue = blueText && "text-blue-700 dark:text-blue-400";
+ const muted = blueText
+ ? "text-blue-700/70 dark:text-blue-300/70"
+ : "text-muted-foreground";
+ const blue = blueText && "text-blue-700 dark:text-blue-400";
 
-  return (
-    <Link
-      href={`/jobs/${job.id}`}
-      className="block rounded-xl border border-border/15 bg-card p-5 transition-colors hover:border-primary/40 hover:shadow-sm"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className={cn("truncate text-base font-semibold", blue)}>{job.title}</h3>
-          <div className={cn("mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm", muted)}>
-            {job.companyName && (
-              <CompanyLink
-                clientProfileId={job.clientProfileId}
-                companyName={job.companyName}
-              />
-            )}
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5" />
-              {job.location}
-            </span>
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {job.matchLabel && (
-            <Badge className="shrink-0 bg-emerald-500/10 text-emerald-600">
-              {job.matchLabel}
-            </Badge>
-          )}
-          <SaveJobButton jobId={job.id} />
-        </div>
-      </div>
+ return (
+ <Link
+ href={`/jobs/${job.id}`}
+ className="block border border-border/15 bg-card p-5 transition-colors hover:border-primary/40 hover:shadow-sm"
+ >
+ <div className="flex items-start justify-between gap-3">
+ <div className="min-w-0">
+ <h3 className={cn("truncate text-base font-semibold", blue)}>{job.title}</h3>
+ <div className={cn("mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm", muted)}>
+ {job.companyName && (
+ <CompanyLink
+ clientProfileId={job.clientProfileId}
+ companyName={job.companyName}
+ />
+ )}
+ <span className="inline-flex items-center gap-1">
+ <MapPin className="h-3.5 w-3.5" />
+ {job.location}
+ </span>
+ </div>
+ </div>
+ <div className="flex shrink-0 items-center gap-1">
+ {job.matchLabel && (
+ <Badge className="shrink-0 bg-emerald-500/10 text-emerald-600">
+ {job.matchLabel}
+ </Badge>
+ )}
+ <SaveJobButton jobId={job.id} />
+ </div>
+ </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        <Badge variant="secondary">{employmentLabel(job.employmentType)}</Badge>
-        <Badge variant="secondary">{preferenceLabel(job.workPreference)}</Badge>
-        {job.experienceRequired && (
-          <Badge variant="secondary">{job.experienceRequired}</Badge>
-        )}
-      </div>
+ <div className="mt-3 flex flex-wrap gap-1.5">
+ <Badge variant="secondary">{employmentLabel(job.employmentType)}</Badge>
+ <Badge variant="secondary">{preferenceLabel(job.workPreference)}</Badge>
+ {job.experienceRequired && (
+ <Badge variant="secondary">{job.experienceRequired}</Badge>
+ )}
+ </div>
 
-      <p className={cn("mt-3 line-clamp-2 text-sm", muted)}>{job.description}</p>
+ <p className={cn("mt-3 line-clamp-2 text-sm", muted)}>{job.description}</p>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <p className={cn("text-sm font-medium", blue)}>{formatSalary(job)}</p>
-        <p className={cn("inline-flex items-center gap-1 text-xs", muted)}>
-          <Clock className="h-3 w-3" />
-          Closes {formatDate(job.expiresAt)}
-        </p>
-      </div>
+ <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+ <p className={cn("text-sm font-medium", blue)}>{formatSalary(job)}</p>
+ <p className={cn("inline-flex items-center gap-1 text-xs", muted)}>
+ <Clock className="h-3 w-3" />
+ Closes {formatDate(job.expiresAt)}
+ </p>
+ </div>
 
-      {job.skillsRequired.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1">
-          {job.skillsRequired.slice(0, 5).map((skill) => (
-            <span
-              key={skill}
-              className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
-            >
-              {skill}
-            </span>
-          ))}
-          {job.skillsRequired.length > 5 && (
-            <span className="px-1.5 py-0.5 text-xs text-muted-foreground">
-              +{job.skillsRequired.length - 5} more
-            </span>
-          )}
-        </div>
-      )}
-    </Link>
-  );
+ {job.skillsRequired.length > 0 && (
+ <div className="mt-3 flex flex-wrap gap-1">
+ {job.skillsRequired.slice(0, 5).map((skill) => (
+ <span
+ key={skill}
+ className=" bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
+ >
+ {skill}
+ </span>
+ ))}
+ {job.skillsRequired.length > 5 && (
+ <span className="px-1.5 py-0.5 text-xs text-muted-foreground">
+ +{job.skillsRequired.length - 5} more
+ </span>
+ )}
+ </div>
+ )}
+ </Link>
+ );
 }

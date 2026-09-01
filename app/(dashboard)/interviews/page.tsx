@@ -3,5 +3,5 @@
 import { InterviewsPage } from "@/components/interviews/interviews-page";
 
 export default function InterviewsListPage() {
-  return <InterviewsPage />;
+ return <InterviewsPage />;
 }

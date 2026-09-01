@@ -14,7 +14,7 @@ export function ChatShell({ children }: { children: React.ReactNode }) {
 	return (
 		<div className="mx-auto flex h-[calc(100dvh-8.5rem)] max-w-6xl gap-4 overflow-hidden">
 			<aside
-				className={`w-full overflow-y-auto rounded-lg border border-border/10 bg-card/40 md:w-80 md:shrink-0 ${
+				className={`w-full overflow-y-auto border border-border/10 bg-card/40 md:w-80 md:shrink-0 ${
 					isThreadPage ? "hidden md:block" : "block"
 				}`}
 			>
@@ -27,7 +27,7 @@ export function ChatShell({ children }: { children: React.ReactNode }) {
 			</aside>
 
 			<section
-				className={`min-w-0 flex-1 overflow-hidden rounded-lg border border-border/10 bg-card/40 ${
+				className={`min-w-0 flex-1 overflow-hidden border border-border/10 bg-card/40 ${
 					isThreadPage ? "block" : "hidden md:block"
 				}`}
 			>

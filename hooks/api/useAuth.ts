@@ -74,8 +74,10 @@ export const useLogin = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: LoginDto) =>
-      call(api.post<LoginData>("/auth/login", data)),
+    mutationFn: (data: LoginDto) => {
+      const { rememberMe, ...payload } = data;
+      return call(api.post<LoginData>("/auth/login", payload));
+    },
     onSuccess: (response, variables) => {
       applyAuthResult(
         response.data.user,

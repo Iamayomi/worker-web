@@ -51,7 +51,7 @@ export function ConversationList({
 				{[...Array(5)].map((_, i) => (
 					<div
 						key={i}
-						className="h-16 animate-pulse rounded-lg bg-muted/50"
+						className="h-16 animate-pulse bg-muted/50"
 					/>
 				))}
 			</div>
@@ -96,7 +96,7 @@ export function ConversationList({
 						<li key={item.id}>
 							<Link
 								href={`/messages/${item.id}`}
-								className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+								className={`flex items-center gap-3 border p-3 transition-colors ${
 									active
 										? "border-primary/30 bg-primary/5"
 										: "border-border/10 hover:bg-secondary/50"
@@ -115,7 +115,7 @@ export function ConversationList({
 									</AvatarFallback>
 								</Avatar>
 								<span
-									className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-background ${
+									className={`absolute -bottom-0.5 -right-0.5 size-3 border-2 border-background ${
 										onlineUserIds[item.participant.userId]
 											? "bg-emerald-500"
 											: "bg-muted-foreground/40"
@@ -139,7 +139,7 @@ export function ConversationList({
 												(item.jobTitle ? `Re: ${item.jobTitle}` : "No messages yet")}
 										</p>
 										{item.unreadCount > 0 && (
-											<span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+											<span className="inline-flex h-5 min-w-5 items-center justify-center bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
 												{item.unreadCount}
 											</span>
 										)}
