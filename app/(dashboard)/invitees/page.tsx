@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function InviteesPage() {
-  redirect("/admin/invites");
+ redirect("/admin/invites");
 }

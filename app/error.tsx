@@ -3,18 +3,18 @@
 import { ErrorPage } from "@/components/shared/error-page";
 
 export default function ErrorPageRoot({
-  error,
-  reset,
+ error,
+ reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+ error: Error & { digest?: string };
+ reset: () => void;
 }) {
-  return (
-    <ErrorPage
-      variant="page"
-      onRetry={reset}
-      showHome
-      errorId={error?.digest}
-    />
-  );
+ return (
+ <ErrorPage
+ variant="page"
+ onRetry={reset}
+ showHome
+ errorId={error?.digest}
+ />
+ );
 }

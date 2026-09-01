@@ -8,22 +8,22 @@ import { usePathname } from "next/navigation";
 import { AccountType, UserRole } from "@/types/api/auth";
 
 export default function MarketingLayout({
-  children,
+ children,
 }: {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }) {
-  const { user } = useAuth();
-  const pathname = usePathname();
-  const myRoles = (user?.roles ?? []) as UserRole[];
-  const isAdmin =
-    myRoles.includes(UserRole.SUPER_ADMIN) || myRoles.includes(UserRole.ADMIN);
-  const isTalent = user?.accountType === AccountType.TALENT && !isAdmin;
+ const { user } = useAuth();
+ const pathname = usePathname();
+ const myRoles = (user?.roles ?? []) as UserRole[];
+ const isAdmin =
+ myRoles.includes(UserRole.SUPER_ADMIN) || myRoles.includes(UserRole.ADMIN);
+ const isTalent = user?.accountType === AccountType.TALENT && !isAdmin;
 
-  return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {isTalent ? <TalentHeader pathname={pathname} /> : <Header />}
-      <main className="flex-1">{children}</main>
-      <Footer />
-    </div>
-  );
+ return (
+ <div className="flex min-h-screen flex-col bg-background">
+ {isTalent ? <TalentHeader pathname={pathname} /> : <Header />}
+ <main className="flex-1">{children}</main>
+ <Footer />
+ </div>
+ );
 }

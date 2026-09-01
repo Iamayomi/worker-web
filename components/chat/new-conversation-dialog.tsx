@@ -43,7 +43,7 @@ function PresenceDot({ userId }: { userId: string }) {
 	const online = useIsOnline(userId);
 	return (
 		<span
-			className={`size-2.5 shrink-0 rounded-full ${
+			className={`size-2.5 shrink-0 ${
 				online ? "bg-emerald-500" : "bg-muted-foreground/40"
 			}`}
 			title={online ? "Online" : "Offline"}
@@ -146,7 +146,7 @@ export function NewConversationDialog() {
 										type="button"
 										onClick={() => void startChat(person)}
 										disabled={startingId === person.userId}
-										className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-secondary/60 disabled:opacity-60"
+										className="flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-secondary/60 disabled:opacity-60"
 									>
 										<span className="relative shrink-0">
 											<Avatar className="size-9">
@@ -160,7 +160,7 @@ export function NewConversationDialog() {
 													{initials(person.name)}
 												</AvatarFallback>
 											</Avatar>
-											<span className="absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-background">
+											<span className="absolute -bottom-0.5 -right-0.5 border-2 border-background">
 												<PresenceDot userId={person.userId} />
 											</span>
 										</span>

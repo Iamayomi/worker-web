@@ -4,17 +4,17 @@ import { INTERVIEW_STATUSES } from "@/lib/constants/enums";
 import type { InterviewStatus } from "@/types/api/interviews";
 
 const LABEL: Record<InterviewStatus, string> = Object.fromEntries(
-  INTERVIEW_STATUSES.map((s) => [s.value, s.label])
+ INTERVIEW_STATUSES.map((s) => [s.value, s.label])
 ) as Record<InterviewStatus, string>;
 
 export function InterviewStatusBadge({
-  status,
+ status,
 }: {
-  status: InterviewStatus;
+ status: InterviewStatus;
 }) {
-  return (
-    <Badge className={INTERVIEW_STATUS[status] ?? undefined}>
-      {LABEL[status] ?? status}
-    </Badge>
-  );
+ return (
+ <Badge className={INTERVIEW_STATUS[status] ?? undefined}>
+ {LABEL[status] ?? status}
+ </Badge>
+ );
 }

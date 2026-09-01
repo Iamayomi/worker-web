@@ -13,97 +13,97 @@ import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+ Form,
+ FormControl,
+ FormField,
+ FormItem,
+ FormLabel,
+ FormMessage,
 } from "@/components/ui/form";
 import { useForgotPassword } from "@/hooks/api/useAuth";
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email address"),
+ email: z.string().email("Invalid email address"),
 });
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-  usePageTitle("Forgot Password");
-  const router = useRouter();
+ usePageTitle("Forgot Password");
+ const router = useRouter();
 
-  const form = useForm<ForgotPasswordValues>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: "" },
-  });
+ const form = useForm<ForgotPasswordValues>({
+ resolver: zodResolver(forgotPasswordSchema),
+ defaultValues: { email: "" },
+ });
 
-  const forgotPassword = useForgotPassword();
+ const forgotPassword = useForgotPassword();
 
-  const watchedEmail = form.watch("email");
+ const watchedEmail = form.watch("email");
 
-  const onSubmit = form.handleSubmit((values) => {
-    forgotPassword.mutate(values, {
-      onSuccess: (response) => {
-        toast.success(response.message || "If the email exists, a reset code has been sent");
-        router.push(
-          `/reset-password?email=${encodeURIComponent(values.email)}&reference=${encodeURIComponent(response.data.reference)}`
-        );
-      },
-      onError: (error) => {
-        toast.error(errorMessage(error, "Something went wrong"));
-      },
-    });
-  });
+ const onSubmit = form.handleSubmit((values) => {
+ forgotPassword.mutate(values, {
+ onSuccess: (response) => {
+ toast.success(response.message || "If the email exists, a reset code has been sent");
+ router.push(
+ `/reset-password?email=${encodeURIComponent(values.email)}&reference=${encodeURIComponent(response.data.reference)}`
+ );
+ },
+ onError: (error) => {
+ toast.error(errorMessage(error, "Something went wrong"));
+ },
+ });
+ });
 
-  return (
-    <div className="mx-auto w-full max-w-md">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Forgot your password?</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Enter your email address and we&apos;ll send you a code to reset your password.
-        </p>
-      </div>
+ return (
+ <div className="mx-auto w-full max-w-md">
+ <div className="mb-8">
+ <h1 className="text-2xl font-bold tracking-tight">Forgot your password?</h1>
+ <p className="mt-1 text-sm text-muted-foreground">
+ Enter your email address and we&apos;ll send you a code to reset your password.
+ </p>
+ </div>
 
-      <Form {...form}>
-        <form onSubmit={onSubmit} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email address</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+ <Form {...form}>
+ <form onSubmit={onSubmit} className="space-y-6">
+ <FormField
+ control={form.control}
+ name="email"
+ render={({ field }) => (
+ <FormItem>
+ <FormLabel>Email address</FormLabel>
+ <FormControl>
+ <div className="relative">
+ <Input
+ type="email"
+ placeholder="you@example.com"
+ autoComplete="email"
+ {...field}
+ />
+ </div>
+ </FormControl>
+ <FormMessage />
+ </FormItem>
+ )}
+ />
 
-          <Button
-            type="submit"
-            size="lg"
-            disabled={!watchedEmail || forgotPassword.isPending}
-            className="w-full"
-          >
-            {forgotPassword.isPending && <LoaderCircle className="size-4 animate-spin" />}
-            Send reset code
-          </Button>
-        </form>
-      </Form>
+ <Button
+ type="submit"
+ size="lg"
+ disabled={!watchedEmail || forgotPassword.isPending}
+ className="w-full"
+ >
+ {forgotPassword.isPending && <LoaderCircle className="size-4 animate-spin" />}
+ Send reset code
+ </Button>
+ </form>
+ </Form>
 
-      <p className="mt-8 text-center text-sm text-muted-foreground">
-        Remembered your password?{" "}
-        <Link href="/login" className="font-medium text-primary hover:underline">
-          Sign in
-        </Link>
-      </p>
-    </div>
-  );
+ <p className="mt-8 text-center text-sm text-muted-foreground">
+ Remembered your password?{" "}
+ <Link href="/login" className="font-medium text-primary hover:underline">
+ Sign in
+ </Link>
+ </p>
+ </div>
+ );
 }

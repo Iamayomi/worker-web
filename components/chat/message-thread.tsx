@@ -185,7 +185,7 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 				{[...Array(4)].map((_, i) => (
 					<div
 						key={i}
-						className="h-12 animate-pulse rounded-lg bg-muted/50"
+						className="h-12 animate-pulse bg-muted/50"
 						style={{ width: `${60 + ((i * 37) % 40)}%` }}
 					/>
 				))}
@@ -218,7 +218,7 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 						</AvatarFallback>
 					</Avatar>
 					<span
-						className={`absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background ${
+						className={`absolute -bottom-0.5 -right-0.5 size-2.5 border-2 border-background ${
 							otherOnline ? "bg-emerald-500" : "bg-muted-foreground/40"
 						}`}
 					/>
@@ -273,10 +273,10 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 								className={`flex ${mine ? "justify-end" : "justify-start"}`}
 							>
 								<div
-									className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
+									className={`max-w-[75%] rounded-lg px-4 py-2 text-sm ${
 										mine
-											? "rounded-br-md bg-primary text-primary-foreground"
-											: "rounded-bl-md bg-secondary"
+											? " bg-primary text-primary-foreground"
+											: " bg-secondary"
 									}`}
 								>
 									{!mine && message.senderName && (
@@ -295,16 +295,16 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 											className="mt-2 block"
 										>
 											{message.attachmentType?.startsWith("image/") ? (
-												<span className="relative block overflow-hidden rounded-lg">
+												<span className="relative block overflow-hidden">
 													{/* eslint-disable-next-line @next/next/no-img-element */}
 													<img
 														src={message.attachmentUrl}
 														alt={message.attachmentName ?? "Attachment"}
-														className="max-h-48 w-full rounded-lg object-cover"
+														className="max-h-48 w-full object-cover"
 													/>
 												</span>
 											) : (
-												<span className="flex items-center gap-2 rounded-lg border border-border/20 bg-background/40 px-3 py-2">
+												<span className="flex items-center gap-2 border border-border/20 bg-background/40 px-3 py-2">
 													<FileText className="h-4 w-4 shrink-0" />
 													<span className="min-w-0">
 														<span className="block truncate text-sm font-medium">
@@ -337,14 +337,14 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 
 					{isTyping && (
 						<div className="flex justify-start">
-							<div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-secondary px-4 py-3">
-								<span className="size-1.5 animate-bounce rounded-full bg-muted-foreground" />
+							<div className="flex items-center gap-1 bg-secondary px-4 py-3">
+								<span className="size-1.5 animate-bounce bg-muted-foreground" />
 								<span
-									className="size-1.5 animate-bounce rounded-full bg-muted-foreground"
+									className="size-1.5 animate-bounce bg-muted-foreground"
 									style={{ animationDelay: "0.15s" }}
 								/>
 								<span
-									className="size-1.5 animate-bounce rounded-full bg-muted-foreground"
+									className="size-1.5 animate-bounce bg-muted-foreground"
 									style={{ animationDelay: "0.3s" }}
 								/>
 							</div>
@@ -357,7 +357,7 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 			<div className="border-t px-5 py-3">
 				<div className="mx-auto max-w-3xl space-y-2">
 					{attachment && (
-						<div className="flex items-center gap-2 rounded-lg border border-border/15 bg-muted/40 px-3 py-2">
+						<div className="flex items-center gap-2 border border-border/15 bg-muted/40 px-3 py-2">
 							{attachment.type.startsWith("image/") ? (
 								<ImageIcon className="h-4 w-4 shrink-0" />
 							) : (

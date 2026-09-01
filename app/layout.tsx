@@ -11,41 +11,41 @@ import { DynamicFavicon } from "@/components/layout/dynamic-favicon";
 import "./globals.css";
 
 const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
+ subsets: ["latin"],
+ display: "swap",
+ variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "Worker — Find Jobs and Hire Worldwide",
-  description: "Connect with talented people around the globe. Post jobs, build teams, and grow your career.",
+ title: "Worker — Find Jobs and Hire Worldwide",
+ description: "Connect with talented people around the globe. Post jobs, build teams, and grow your career.",
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
+ width: "device-width",
+ initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={cn("h-full scroll-smooth antialiased", inter.variable)}>
-      <body className="min-h-full bg-background text-foreground antialiased">
-        <DynamicFavicon />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <QueryProvider>
-            <AuthProvider>
-              {children}
-              <AuthenticatedChatFab />
-            </AuthProvider>
-          </QueryProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+ return (
+ <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={cn("h-full scroll-smooth antialiased", inter.variable)}>
+ <body className="min-h-full bg-background text-foreground antialiased">
+ <DynamicFavicon />
+ <ThemeProvider
+ attribute="class"
+ defaultTheme="light"
+ enableSystem={false}
+ disableTransitionOnChange
+ >
+ <QueryProvider>
+ <AuthProvider>
+ {children}
+ <AuthenticatedChatFab />
+ </AuthProvider>
+ </QueryProvider>
+ </ThemeProvider>
+ </body>
+ </html>
+ );
 }
 

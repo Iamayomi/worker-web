@@ -103,4 +103,10 @@ export const queryKeys = {
     ready: () => ["health", "ready"] as const,
     metrics: () => ["health", "metrics"] as const,
   },
+  billing: {
+    all: ["billing"] as const,
+    subscription: () => ["billing", "subscription"] as const,
+    invoices: (page: number, limit: number) =>
+      ["billing", "invoices", { page, limit }] as const,
+  },
 };
