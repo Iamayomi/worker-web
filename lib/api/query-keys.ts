@@ -109,4 +109,10 @@ export const queryKeys = {
     invoices: (page: number, limit: number) =>
       ["billing", "invoices", { page, limit }] as const,
   },
+  emailTemplates: {
+    all: ["email-templates"] as const,
+    list: (params: object) =>
+      ["email-templates", "list", params] as const,
+    detail: (id: string) => ["email-templates", "detail", id] as const,
+  },
 };

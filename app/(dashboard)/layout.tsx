@@ -27,6 +27,7 @@ import {
   LayoutTemplate,
   CalendarDays,
   CreditCard,
+  Mail,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DashboardHeaderSkeleton, TalentHomeSkeleton } from "@/components/shared/skeletons";
@@ -83,6 +84,11 @@ function NavLinks({
  icon: FileText,
  },
  { href: "/admin/interviews", label: "Interviews", icon: CalendarDays },
+ {
+ href: "/admin/email-templates",
+ label: "Email templates",
+ icon: Mail,
+ },
  ],
  });
  sections.push({
