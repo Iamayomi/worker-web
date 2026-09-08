@@ -17,6 +17,7 @@ export interface ReferralSummaryData {
     email: string;
     account_type: AccountType | null;
     status: string;
+    commission: string;
     created_at: string;
   }[];
 }

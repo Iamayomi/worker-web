@@ -87,6 +87,13 @@ export interface TalentProfileData {
   linkedinUrl?: string;
   avatarUrl?: string;
   visibility?: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryCurrency?: string;
+  availabilityDate?: string | null;
+  openToWork?: boolean;
+  lastActiveAt?: string | null;
+  redacted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -167,6 +174,11 @@ export interface UpdateTalentProfileInput {
   resumeUrl?: string;
   portfolioUrl?: string;
   linkedinUrl?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryCurrency?: string;
+  availabilityDate?: string;
+  openToWork?: boolean;
 }
 
 export function useUpdateTalentProfile() {

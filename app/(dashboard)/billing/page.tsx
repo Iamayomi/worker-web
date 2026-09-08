@@ -19,7 +19,12 @@ import {
   useInitCheckout,
   useCancelSubscription,
   useInvoices,
+  useVerifyCheckout,
+  useResumeSubscription,
+  useBillingUsage,
+  BillingInterval,
 } from "@/lib/hooks/use-billing";
+import type { QuotaUsage } from "@/lib/types/billing";
 import type { CheckoutInput } from "@/lib/hooks/use-billing";
 import {
   PlanType,
@@ -71,33 +76,39 @@ const PLANS: PlanMeta[] = [
     monthlyNgn: 0,
     blurb: "For getting started",
     icon: Rocket,
-    features: ["1 active job", "Basic job posting"],
+    features: ["2 active jobs", "Basic job posting", "Basic applicant management"],
   },
   {
     name: "Pro",
-    price: "₦10,000",
-    monthlyNgn: 10000,
+    price: "₦25,000",
+    monthlyNgn: 25000,
     blurb: "For growing teams",
     icon: Sparkles,
     features: [
       "Up to 10 active jobs",
-      "1 recruiter seat",
+      "5 recruiter seats",
       "Boost job listings",
       "Job alert distribution",
+      "Google Meet video interviews",
+      "Google Calendar sync",
       "14-day free trial",
     ],
   },
   {
     name: "Enterprise",
-    price: "₦50,000",
-    monthlyNgn: 50000,
+    price: "₦75,000",
+    monthlyNgn: 75000,
     blurb: "For large organisations",
     icon: Briefcase,
     features: [
       "Unlimited active jobs",
-      "Up to 10 recruiter seats",
+      "Unlimited recruiter seats",
       "Boost job listings",
       "Job alert distribution",
+      "Google Meet video interviews",
+      "Google Calendar sync",
+      "Gmail inbox integration",
+      "Priority support",
     ],
   },
 ];
@@ -132,12 +143,16 @@ function CurrentPlanCard({
   subscription,
   onCancel,
   cancelPending,
+  onResume,
+  resumePending,
 }: {
   effectivePlan: PlanType;
   limits: PlanLimits | undefined;
   subscription: SubscriptionData | null;
   onCancel: () => void;
   cancelPending: boolean;
+  onResume: () => void;
+  resumePending: boolean;
 }) {
   const isFree = effectivePlan === PlanType.FREE;
   const maxJobs = limits?.maxActiveJobs ?? 0;
@@ -207,24 +222,67 @@ function CurrentPlanCard({
                 : "Not included"}
             </dd>
           </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Google Meet</dt>
+            <dd className="mt-1 text-sm font-medium">
+              {limits?.allowsGoogleMeet ? "Enabled" : "Not included"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Calendar sync</dt>
+            <dd className="mt-1 text-sm font-medium">
+              {limits?.allowsGoogleCalendar ? "Enabled" : "Not included"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Gmail inbox</dt>
+            <dd className="mt-1 text-sm font-medium">
+              {limits?.allowsGmailInbox ? "Enabled" : "Not included"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Talent outreach</dt>
+            <dd className="mt-1 text-sm font-medium">
+              {limits?.allowsTalentOutreach
+                ? Number.isFinite(limits?.maxMonthlyOutreach)
+                  ? `${limits?.maxMonthlyOutreach}/month`
+                  : "Unlimited"
+                : "Not included"}
+            </dd>
+          </div>
         </dl>
 
         {!isFree &&
           subscription?.status &&
           subscription.status !== SubscriptionStatus.CANCELED && (
-            <div className="mt-6 border-t border-border/15 pt-4">
-              <Button
-                variant="destructive"
-                onClick={onCancel}
-                disabled={cancelPending}
-              >
-                {cancelPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Ban className="h-4 w-4" />
-                )}
-                Cancel subscription
-              </Button>
+            <div className="mt-6 flex flex-wrap gap-2 border-t border-border/15 pt-4">
+              {subscription.cancelAtPeriodEnd ? (
+                <Button
+                  variant="default"
+                  onClick={onResume}
+                  disabled={resumePending}
+                >
+                  {resumePending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
+                  Resume subscription
+                </Button>
+              ) : (
+                <Button
+                  variant="destructive"
+                  onClick={onCancel}
+                  disabled={cancelPending}
+                >
+                  {cancelPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Ban className="h-4 w-4" />
+                  )}
+                  Cancel subscription
+                </Button>
+              )}
             </div>
           )}
       </CardContent>
@@ -285,6 +343,63 @@ function PlanCard({
   );
 }
 
+function UsageBar({ label, usage }: { label: string; usage: QuotaUsage }) {
+  const pct = usage.unlimited
+    ? 0
+    : usage.max > 0
+      ? Math.min(100, Math.round((usage.current / usage.max) * 100))
+      : 0;
+  const nearLimit = !usage.unlimited && usage.max > 0 && pct >= 80;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-2">
+        <dt className="text-xs text-muted-foreground">{label}</dt>
+        <dd className="text-sm font-medium">
+          {usage.current} / {usage.unlimited ? "Unlimited" : usage.max}
+        </dd>
+      </div>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full ${nearLimit ? "bg-amber-500" : "bg-primary"}`}
+          style={{ width: usage.unlimited ? "100%" : `${pct}%` }}
+        />
+      </div>
+      {nearLimit && (
+        <p className="mt-1 text-xs text-amber-600">
+          Near your plan limit — upgrade for more capacity.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function UsageCard() {
+  const usageQuery = useBillingUsage();
+  const usage = usageQuery.data;
+  if (usageQuery.isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <SectionSkeleton />
+        </CardContent>
+      </Card>
+    );
+  }
+  if (!usage) return null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Usage</CardTitle>
+        <CardDescription>Current use against your plan quotas</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <UsageBar label="Active job postings" usage={usage.jobPostings} />
+        <UsageBar label="Recruiter seats" usage={usage.recruiterSeats} />
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function BillingPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -292,6 +407,12 @@ export default function BillingPage() {
   const subQuery = useSubscription();
   const checkout = useInitCheckout();
   const cancel = useCancelSubscription();
+  const resume = useResumeSubscription();
+  const verify = useVerifyCheckout();
+
+  const [interval, setInterval] = useState<BillingInterval>(
+    BillingInterval.MONTHLY,
+  );
 
   const [invoicePage, setInvoicePage] = useState(1);
   const invoicesQuery = useInvoices(invoicePage, INVOICE_PAGE_SIZE);
@@ -302,19 +423,26 @@ export default function BillingPage() {
   const limits = data?.limits;
   const subscription = data?.subscription ?? null;
 
-  // After a Flutterwave redirect back to /dashboard/billing?tx_ref=..., the
-  // subscription should now reflect the new plan. Refetch and clear the param.
+  // After a Flutterwave redirect back to /dashboard/billing?tx_ref=...,
+  // confirm server-side (webhook may still be in flight), then clear param.
   const txRef = searchParams.get("tx_ref");
   useEffect(() => {
     if (txRef) {
-      subQuery.refetch();
+      verify.mutate(txRef, {
+        onSuccess: (result) => {
+          if (result?.verified) toast.success("Payment confirmed");
+          else toast.info("Payment pending confirmation");
+          subQuery.refetch();
+        },
+        onError: () => subQuery.refetch(),
+      });
       router.replace("/dashboard/billing", { scroll: false });
     }
   }, [txRef, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelect = (plan: PlanType) => {
     checkout.mutate(
-      { plan } as CheckoutInput,
+      { plan, interval } as CheckoutInput,
       {
         onSuccess: (result) => {
           if (result.checkoutUrl) {
@@ -335,6 +463,14 @@ export default function BillingPage() {
       },
       onError: (err) =>
         toast.error(err.message || "Failed to cancel subscription"),
+    });
+  };
+
+  const handleResume = () => {
+    resume.mutate(undefined, {
+      onSuccess: () => toast.success("Subscription resumed"),
+      onError: (err) =>
+        toast.error(err.message || "Failed to resume subscription"),
     });
   };
 
@@ -376,10 +512,36 @@ export default function BillingPage() {
           subscription={subscription}
           onCancel={() => setConfirmCancel(true)}
           cancelPending={cancel.isPending}
+          onResume={handleResume}
+          resumePending={resume.isPending}
         />
 
+        <UsageCard />
+
         <div>
-          <h2 className="mb-3 text-lg font-semibold">Plans</h2>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">Plans</h2>
+            <div className="flex items-center gap-1 rounded-md border p-1">
+              <Button
+                variant={
+                  interval === BillingInterval.MONTHLY ? "default" : "ghost"
+                }
+                size="sm"
+                onClick={() => setInterval(BillingInterval.MONTHLY)}
+              >
+                Monthly
+              </Button>
+              <Button
+                variant={
+                  interval === BillingInterval.YEARLY ? "default" : "ghost"
+                }
+                size="sm"
+                onClick={() => setInterval(BillingInterval.YEARLY)}
+              >
+                Yearly (2 months free)
+              </Button>
+            </div>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PLANS.map((plan) => (
               <PlanCard

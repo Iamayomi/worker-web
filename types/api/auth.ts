@@ -129,15 +129,12 @@ export interface LoginData {
 
 export interface GoogleAuthDto {
   id_token: string;
-  account_type?: AccountType;
-  terms_accepted?: boolean;
 }
 
 export interface GoogleAuthData {
   user: User;
   tokens: AuthTokens;
   session_id: string;
-  is_new_user: boolean;
   profile_complete: boolean;
 }
 

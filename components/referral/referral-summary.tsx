@@ -128,9 +128,16 @@ export function ReferralSummarySection() {
  · {new Date(r.created_at).toLocaleDateString()}
  </p>
  </div>
- <span className="text-xs text-muted-foreground capitalize">
- {r.status.replace(/_/g, " ")}
- </span>
+  <div className="text-right">
+  <span className="block text-xs text-muted-foreground capitalize">
+  {r.status.replace(/_/g, " ")}
+  </span>
+  {Number(r.commission) > 0 && (
+  <span className="block text-xs font-medium text-green-600">
+  ₦{Number(r.commission).toLocaleString()} earned
+  </span>
+  )}
+  </div>
  </li>
  ))}
  </ul>

@@ -159,6 +159,36 @@ export function useUpdateJob(id: string) {
   });
 }
 
+export function useBoostJob() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.auth.post<Job>(`/jobs/${id}/boost`);
+      if (!res.success) throw new Error(res.message || "Failed to boost job");
+      return res.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.jobs.all });
+    },
+  });
+}
+
+export function useUnboostJob() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.auth.delete<Job>(`/jobs/${id}/boost`);
+      if (!res.success) throw new Error(res.message || "Failed to unboost job");
+      return res.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.jobs.all });
+    },
+  });
+}
+
 export function useDeleteJob() {
   const queryClient = useQueryClient();
 

@@ -19,6 +19,7 @@ import { AnimatedContent } from "@/components/shared/animated-content";
 import { PageHeader } from "@/components/shared/page-header";
 import { SettingsSubNav } from "@/components/settings/settings-sub-nav";
 import { GoogleCalendarCard } from "@/components/settings/google-calendar-card";
+import { GoogleGmailCard } from "@/components/settings/google-gmail-card";
 
 function StatusBanner({ kind, children }: { kind: "error" | "success"; children: React.ReactNode }) {
  const styles =
@@ -37,17 +38,22 @@ export default function SecuritySettingsPage() {
  const hasPassword = user?.hasPassword ?? false;
  const isClient = user?.accountType === "client";
  const searchParams = useSearchParams();
- const [googleNotice] = useState<"connected" | "error" | null>(() => {
- const status = searchParams.get("google");
- return status === "connected" || status === "error" ? status : null;
- });
+  const [googleNotice] = useState<"connected" | "error" | null>(() => {
+    const status = searchParams.get("google");
+    return status === "connected" || status === "error" ? status : null;
+  });
+  const [gmailNotice] = useState<"connected" | "error" | null>(() => {
+    const status = searchParams.get("gmail");
+    return status === "connected" || status === "error" ? status : null;
+  });
 
- useEffect(() => {
- if (!googleNotice) return;
- const url = new URL(window.location.href);
- url.searchParams.delete("google");
- window.history.replaceState({}, "", url.toString());
- }, [googleNotice]);
+  useEffect(() => {
+    if (!googleNotice && !gmailNotice) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("google");
+    url.searchParams.delete("gmail");
+    window.history.replaceState({}, "", url.toString());
+  }, [googleNotice, gmailNotice]);
 
  const [currentPassword, setCurrentPassword] = useState("");
  const [newPassword, setNewPassword] = useState("");
@@ -101,13 +107,23 @@ export default function SecuritySettingsPage() {
  Google Calendar connected successfully.
  </StatusBanner>
  )}
- {googleNotice === "error" && (
- <StatusBanner kind="error">
- Google Calendar connection failed. Please try again.
- </StatusBanner>
- )}
+  {googleNotice === "error" && (
+    <StatusBanner kind="error">
+      Google Calendar connection failed. Please try again.
+    </StatusBanner>
+  )}
+  {gmailNotice === "connected" && (
+    <StatusBanner kind="success">Gmail connected successfully.</StatusBanner>
+  )}
+  {gmailNotice === "error" && (
+    <StatusBanner kind="error">
+      Gmail connection failed. Please try again.
+    </StatusBanner>
+  )}
 
- {isClient && <GoogleCalendarCard />}
+  {isClient && <GoogleCalendarCard />}
+
+  {isClient && <GoogleGmailCard />}
 
  <Card>
  <CardHeader>

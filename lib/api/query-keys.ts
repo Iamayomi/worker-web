@@ -50,6 +50,14 @@ export const queryKeys = {
     all: ["google-calendar"] as const,
     status: () => ["google-calendar", "status"] as const,
   },
+  googleGmail: {
+    all: ["google-gmail"] as const,
+    status: () => ["google-gmail", "status"] as const,
+    messages: (query: string, maxResults: number) =>
+      ["google-gmail", "messages", query, maxResults] as const,
+    message: (messageId: string) =>
+      ["google-gmail", "message", messageId] as const,
+  },
   savedJobs: {
     all: ["savedJobs"] as const,
     ids: () => ["savedJobs", "ids"] as const,
@@ -114,5 +122,9 @@ export const queryKeys = {
     list: (params: object) =>
       ["email-templates", "list", params] as const,
     detail: (id: string) => ["email-templates", "detail", id] as const,
+  },
+  jobAlerts: {
+    all: ["job-alerts"] as const,
+    list: () => ["job-alerts", "list"] as const,
   },
 };

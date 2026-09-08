@@ -114,13 +114,14 @@ function NavLinks({
  ],
  });
   } else if (isClient) {
-  sections.push({
-  title: "Jobs",
-  links: [
-  { href: "/jobs/mine", label: "My jobs", icon: Briefcase },
-  ],
-  });
-  } else {
+    sections.push({
+      title: "Jobs",
+      links: [
+        { href: "/jobs/mine", label: "My jobs", icon: Briefcase },
+        { href: "/talent-search", label: "Talent search", icon: Users },
+        { href: "/analytics", label: "Analytics", icon: Activity },
+      ],
+    });  } else {
  sections.push({
  title: "Jobs",
  links: [

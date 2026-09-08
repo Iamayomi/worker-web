@@ -3,7 +3,7 @@ import { useAuthStore } from "@/store/authStore";
 
 const API_BASE_URL =
 	process.env.NEXT_PUBLIC_WORKER_API_URL?.replace(/\/api\/v1\/?$/, "") ||
-	"http://localhost:3001";
+	"http://localhost:8080";
 
 function readToken(): string | null {
 	if (typeof window === "undefined") return null;
