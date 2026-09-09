@@ -7,7 +7,7 @@ import type { IApiResponse } from "../auth/types";
 import { useAuthStore } from "@/store/authStore";
 
 const WORKER_API =
-	process.env.NEXT_PUBLIC_WORKER_API_URL || "http://localhost:3001/api/v1";
+	process.env.NEXT_PUBLIC_WORKER_API_URL || "http://localhost:8080/api/v1";
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;

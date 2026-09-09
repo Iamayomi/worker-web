@@ -17,6 +17,7 @@ import {
  useGmailMessages,
  useGmailMessageDetails,
 } from "@/lib/hooks/use-google-gmail";
+import { useSubscription } from "@/lib/hooks/use-billing";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -213,20 +214,23 @@ export function GmailInboxView() {
  const [search, setSearch] = useState("");
  const [selectedId, setSelectedId] = useState<string | null>(null);
 
+ const { data: billing, isLoading: billingLoading } = useSubscription();
+ const allowsGmail = billing?.limits?.allowsGmailInbox ?? false;
+
  useEffect(() => {
- const timer = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DELAY);
- return () => clearTimeout(timer);
+  const timer = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DELAY);
+  return () => clearTimeout(timer);
  }, [searchInput]);
 
  const statusQuery = useGoogleGmailStatus();
  const {
- data,
- isLoading,
- isError,
- error,
- refetch,
- isFetching,
- } = useGmailMessages(search, DEFAULT_MAX_RESULTS);
+  data,
+  isLoading,
+  isError,
+  error,
+  refetch,
+  isFetching,
+ } = useGmailMessages(search, DEFAULT_MAX_RESULTS, allowsGmail);
 
  const messages = useMemo(() => data?.messages ?? [], [data]);
 
@@ -238,13 +242,31 @@ export function GmailInboxView() {
  title="Gmail inbox"
  description="Recruitment emails synced from your connected Gmail account."
  actions={
- <Button asChild variant="outline" size="sm">
- <Link href="/settings">Manage connection</Link>
- </Button>
+  <Button asChild variant="outline" size="sm">
+  <Link href="/settings">Manage connection</Link>
+  </Button>
  }
  />
 
- {statusQuery.isLoading ? (
+ {billingLoading ? (
+  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+  <LoaderCircle className="h-4 w-4 animate-spin" />
+  Checking plan...
+  </div>
+ ) : !allowsGmail ? (
+  <div className=" border border-border/15">
+  <EmptyState
+  icon={MailCheck}
+  title="Gmail inbox is an Enterprise feature"
+  description="Upgrade to the Enterprise plan to sync and read recruitment emails directly in the platform."
+  action={
+  <Button asChild>
+  <Link href="/billing">Upgrade plan</Link>
+  </Button>
+  }
+  />
+  </div>
+ ) : statusQuery.isLoading ? (
  <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <LoaderCircle className="h-4 w-4 animate-spin" />
  Checking connection...

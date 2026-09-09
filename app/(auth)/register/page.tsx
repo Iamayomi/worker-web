@@ -28,15 +28,13 @@ import {
  SelectValue,
 } from "@/components/ui/select";
 import { AuthGuard } from "@/components/auth-guard";
-import { GoogleSignInButton } from "@/components/google-sign-in";
 import { OtpVerification } from "@/components/otp-verification";
 import { useRegisterTalent, useRegisterClient } from "@/hooks/api/useAuth";
 import {
- AccountType,
- EmploymentType,
- WorkPreference,
- type RegisterTalentDto,
- type RegisterClientDto,
+  EmploymentType,
+  WorkPreference,
+  type RegisterTalentDto,
+  type RegisterClientDto,
 } from "@/types/api/auth";
 import {
  COMPANY_SIZE_OPTIONS,
@@ -190,18 +188,9 @@ function RegisterTalentForm() {
  return <OtpVerification email={verification.email} reference={verification.reference} />;
  }
 
- return (
- <>
- <div className="mb-6 space-y-3">
- <GoogleSignInButton accountType={AccountType.TALENT} />
- <div className="flex items-center gap-3 text-xs text-muted-foreground">
- <div className="h-px flex-1 bg-border" />
- or
- <div className="h-px flex-1 bg-border" />
- </div>
- </div>
-
- <form onSubmit={onSubmit} className="space-y-4">
+return (
+    <>
+    <form onSubmit={onSubmit} className="space-y-4">
  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
  <div className="space-y-1.5">
  <Label htmlFor="talent-first-name">
@@ -686,18 +675,9 @@ function RegisterClientForm() {
  return <OtpVerification email={verification.email} reference={verification.reference} />;
  }
 
- return (
- <>
- <div className="mb-6 space-y-3">
- <GoogleSignInButton accountType={AccountType.CLIENT} />
- <div className="flex items-center gap-3 text-xs text-muted-foreground">
- <div className="h-px flex-1 bg-border" />
- or
- <div className="h-px flex-1 bg-border" />
- </div>
- </div>
-
- <form onSubmit={onSubmit} className="space-y-4">
+return (
+    <>
+    <form onSubmit={onSubmit} className="space-y-4">
  <div className="grid grid-cols-2 gap-3">
  <div className="space-y-1.5">
  <Label htmlFor="client-first-name">

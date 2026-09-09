@@ -35,6 +35,11 @@ export interface PlanLimits {
   maxRecruiterSeats: number;
   allowsBoost: boolean;
   allowsJobAlertDistribution: boolean;
+  allowsGoogleMeet: boolean;
+  allowsGoogleCalendar: boolean;
+  allowsGmailInbox: boolean;
+  allowsTalentOutreach: boolean;
+  maxMonthlyOutreach: number;
   pricePerMonthNgn: number;
 }
 
@@ -69,4 +74,16 @@ export interface ListInvoicesResponse {
     total: number;
     totalPages: number;
   };
+}
+
+export interface QuotaUsage {
+  current: number;
+  max: number;
+  unlimited: boolean;
+}
+
+export interface BillingUsageData {
+  effectivePlan: PlanType;
+  jobPostings: QuotaUsage;
+  recruiterSeats: QuotaUsage;
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Clock } from "lucide-react";
+import { MapPin, Clock, Zap } from "lucide-react";
 import type { Job } from "@/types/api/jobs";
 import { Badge } from "@/components/ui/badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
@@ -58,8 +58,14 @@ export function JobCard({ job, blueText = false }: { job: Job; blueText?: boolea
  </span>
  </div>
  </div>
- <div className="flex shrink-0 items-center gap-1">
- {job.matchLabel && (
+  <div className="flex shrink-0 items-center gap-1">
+  {job.isBoosted && (
+  <Badge className="shrink-0 bg-amber-500/10 text-amber-600">
+  <Zap className="mr-0.5 h-3 w-3" />
+  Boosted
+  </Badge>
+  )}
+  {job.matchLabel && (
  <Badge className="shrink-0 bg-emerald-500/10 text-emerald-600">
  {job.matchLabel}
  </Badge>

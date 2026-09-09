@@ -4,14 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
- Briefcase,
- Eye,
- Pencil,
- PlusCircle,
- Trash2,
- Users,
+  Briefcase,
+  Eye,
+  Pencil,
+  PlusCircle,
+  Trash2,
+  Users,
+  Zap,
+  ZapOff,
 } from "lucide-react";
-import { useMyJobs, useDeleteJob } from "@/lib/hooks/use-jobs";
+import { useMyJobs, useDeleteJob, useBoostJob, useUnboostJob } from "@/lib/hooks/use-jobs";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useAuth } from "@/lib/auth/auth-context";
 import { AccountType, UserRole } from "@/types/api/auth";
@@ -52,7 +54,9 @@ export default function MyJobsPage() {
  limit,
  });
 
- const deleteJob = useDeleteJob();
+  const deleteJob = useDeleteJob();
+  const boostJob = useBoostJob();
+  const unboostJob = useUnboostJob();
 
  if (isTalent) {
  return (
@@ -105,8 +109,20 @@ export default function MyJobsPage() {
  return all.map(mapRow);
  };
 
- const handleDelete = () => {
- if (!deleteTarget) return;
+  const handleBoostToggle = (job: Job) => {
+  const action = job.isBoosted ? unboostJob : boostJob;
+  action.mutate(job.id, {
+  onSuccess: () => {
+  toast.success(job.isBoosted ? "Boost removed" : "Job boosted for 30 days");
+  },
+  onError: (err) => {
+  toast.error(err instanceof Error ? err.message : "Failed to update boost");
+  },
+  });
+  };
+
+  const handleDelete = () => {
+  if (!deleteTarget) return;
  deleteJob.mutate(deleteTarget, {
  onSuccess: () => {
  toast.success("Job deleted");
@@ -203,9 +219,15 @@ export default function MyJobsPage() {
  >
  {job.title}
  </Link>
- <Badge className={JOB_STATUS[job.status] ?? undefined}>
- {job.status.replace(/_/g, " ")}
- </Badge>
+  <Badge className={JOB_STATUS[job.status] ?? undefined}>
+  {job.status.replace(/_/g, " ")}
+  </Badge>
+  {job.isBoosted && (
+  <Badge className="bg-amber-500/10 text-amber-600">
+  <Zap className="mr-0.5 h-3 w-3" />
+  Boosted
+  </Badge>
+  )}
  </div>
  <p className="mt-1 text-xs text-muted-foreground">
  {job.companyName ?? "Your company"} · {job.location} · Closes{" "}
@@ -225,12 +247,28 @@ export default function MyJobsPage() {
  Applicants
  </Link>
  </Button>
- <Button asChild variant="ghost" size="sm">
- <Link href={`/jobs/manage/${job.id}/edit`}>
- <Pencil className="h-4 w-4" />
- Edit
- </Link>
- </Button>
+  <Button asChild variant="ghost" size="sm">
+  <Link href={`/jobs/manage/${job.id}/edit`}>
+  <Pencil className="h-4 w-4" />
+  Edit
+  </Link>
+  </Button>
+  {job.status === "published" && (
+  <Button
+  variant="ghost"
+  size="sm"
+  title={job.isBoosted ? "Remove boost" : "Boost this job (Pro+)"}
+  disabled={boostJob.isPending || unboostJob.isPending}
+  onClick={() => handleBoostToggle(job)}
+  >
+  {job.isBoosted ? (
+  <ZapOff className="h-4 w-4" />
+  ) : (
+  <Zap className="h-4 w-4" />
+  )}
+  {job.isBoosted ? "Unboost" : "Boost"}
+  </Button>
+  )}
  <Button
  variant="ghost"
  size="sm"

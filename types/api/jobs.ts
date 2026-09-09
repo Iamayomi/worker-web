@@ -57,6 +57,8 @@ export interface Job {
   applicationEmail?: string;
   applicationExternalUrl?: string;
   expiresAt: string;
+  isBoosted?: boolean;
+  boostedUntil?: string | null;
   createdAt: string;
   updatedAt: string;
   matchScore?: number;

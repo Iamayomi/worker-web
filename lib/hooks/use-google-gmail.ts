@@ -4,7 +4,6 @@ import { queryKeys } from "@/lib/api/query-keys";
 import type {
   GoogleGmailAuthUrlData,
   GoogleGmailStatusData,
-  GmailMessageSummary,
   GoogleGmailMessagesResult,
   GmailMessageDetails,
 } from "@/types/api/google";
@@ -53,7 +52,11 @@ export function useDisconnectGoogleGmail() {
   });
 }
 
-export function useGmailMessages(query: string, maxResults = 20) {
+export function useGmailMessages(
+  query: string,
+  maxResults = 20,
+  enabled = true,
+) {
   return useQuery({
     queryKey: queryKeys.googleGmail.messages(query, maxResults),
     queryFn: async () => {
@@ -64,7 +67,7 @@ export function useGmailMessages(query: string, maxResults = 20) {
         throw new Error(res.message || "Failed to load Gmail messages");
       return res.data!;
     },
-    enabled: query !== undefined,
+    enabled: enabled && query !== undefined,
   });
 }
 
